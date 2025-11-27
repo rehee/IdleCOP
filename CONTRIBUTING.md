@@ -121,6 +121,14 @@ Closes #123
 - 代码缩进使用 2 个空格
 - 保持方法简短，单一职责
 
+### Component-Profile 方法对应规范
+
+Profile 的方法签名必须与 Component 的方法签名对应，但需要额外接收 `IdleComponent` 参数：
+
+| Component 方法 | Profile 对应方法 |
+|---------------|-----------------|
+| `OnTick(TickContext context)` | `OnTick(IdleComponent component, TickContext context)` |
+
 ### 示例
 
 ```csharp
@@ -151,6 +159,17 @@ public enum EnumQuality
   Rare,
   Legendary,
   Unique
+}
+
+// Profile 必须实现 IWithName 接口
+public abstract class IdleProfile : IWithName
+{
+  public abstract int Key { get; }
+  public virtual int? KeyOverride { get; }  // Key为0时使用
+  public abstract string? Name { get; }
+  public abstract string? Description { get; }
+  
+  public abstract void OnTick(IdleComponent component, TickContext context);
 }
 ```
 

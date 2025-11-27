@@ -108,8 +108,24 @@ src/
 - 持续性效果（Effect）是子组件
 - 技能与持续性效果为兄弟组件
 - `TickContext` 依次传递给所有组件
+- **行为逻辑只存在于玩家、怪物、NPC类型**
+- **投射物只按飞行轨迹和速度飞行，检查碰撞**
+
+**组件-Profile 方法对应规范：**
+- Component 的方法签名：`OnTick(TickContext context)`
+- Profile 的对应方法签名：`OnTick(IdleComponent component, TickContext context)`
+- Profile 方法需要额外接收 `IdleComponent` 参数
 
 ```csharp
+/// <summary>
+/// 名称描述接口 - 所有Profile必须实现
+/// </summary>
+public interface IWithName
+{
+  string? Name { get; }
+  string? Description { get; }
+}
+
 /// <summary>
 /// 游戏组件基类 - 保存数据，支持父子层级
 /// </summary>
@@ -118,45 +134,88 @@ public abstract class IdleComponent
   public string Id { get; set; }
   public int ProfileKey { get; set; }
   public Dictionary<string, object> Data { get; set; }
-  public List<BehaviorStrategy> Behaviors { get; set; }
   
-  // 父子组件关系
-  public IdleComponent Parent { get; set; }
-  public List<IdleComponent> Children { get; set; }
+  // 父组件关系（可空）
+  public IdleComponent? Parent { get; private set; }
+  
+  // 获取顶层父组件
+  public IdleComponent RootParent
+  {
+    get
+    {
+      var current = this;
+      while (current.Parent != null)
+      {
+        current = current.Parent;
+      }
+      return current;
+    }
+  }
+  
+  /// <summary>
+  /// 设置父组件（防止循环引用）
+  /// </summary>
+  public void SetParent(IdleComponent? newParent)
+  {
+    // 检查循环引用
+    if (newParent != null)
+    {
+      var current = newParent;
+      while (current != null)
+      {
+        if (current == this)
+        {
+          throw new InvalidOperationException("Circular parent-child reference detected");
+        }
+        current = current.Parent;
+      }
+    }
+    
+    Parent = newParent;
+  }
+  
+  /// <summary>
+  /// 移除父组件
+  /// </summary>
+  public void RemoveParent()
+  {
+    Parent = null;
+  }
   
   public virtual void OnTick(TickContext context)
   {
     // 先执行自身逻辑
     var profile = ProfileManager.GetProfile(ProfileKey);
-    profile?.Execute(this, context);
-    
-    // 再依次执行子组件
-    foreach (var child in Children)
-    {
-      child.OnTick(context);
-    }
-  }
-  
-  public void AddChild(IdleComponent child)
-  {
-    child.Parent = this;
-    Children.Add(child);
-  }
-  
-  public void RemoveChild(IdleComponent child)
-  {
-    child.Parent = null;
-    Children.Remove(child);
+    profile?.OnTick(this, context);
   }
 }
 
 /// <summary>
-/// Profile 基类 - 单例，包含组件逻辑
+/// Profile 基类 - 单例，包含组件逻辑，实现 IWithName
 /// </summary>
-public abstract class IdleProfile
+public abstract class IdleProfile : IWithName
 {
   public abstract int Key { get; }
-  public abstract void Execute(IdleComponent component, TickContext context);
+  
+  /// <summary>
+  /// Key为0时使用的覆盖Key（不能与已存在的enum冲突）
+  /// </summary>
+  public virtual int? KeyOverride { get; }
+  
+  /// <summary>
+  /// Profile名称（默认由最终实现类提供）
+  /// </summary>
+  public abstract string? Name { get; }
+  
+  /// <summary>
+  /// Profile描述（默认由最终实现类提供）
+  /// </summary>
+  public abstract string? Description { get; }
+  
+  /// <summary>
+  /// 对应 Component.OnTick 的逻辑实现
+  /// </summary>
+  public abstract void OnTick(IdleComponent component, TickContext context);
 }
 
 // Profile Key 枚举示例
@@ -195,29 +254,106 @@ public enum EnumItem
 
 使用确定性的战斗系统，通过种子文件确保同一种子在同一版本下产生相同的战斗演出。
 
-**种子文件结构：**
+**随机数接口（放在 Helpers 中）：**
 
 ```csharp
+/// <summary>
+/// 随机数接口 - 支持确定性战斗
+/// </summary>
+public interface IRandom
+{
+  int Next();
+  int Next(int maxValue);
+  int Next(int minValue, int maxValue);
+  float NextFloat();
+  double NextDouble();
+}
+
+/// <summary>
+/// 确定性随机数实现 - 由GUID生成种子
+/// </summary>
+public class DeterministicRandom : IRandom
+{
+  private Random random;
+  
+  public DeterministicRandom(Guid guid)
+  {
+    random = new Random(guid.GetHashCode());
+  }
+  
+  public DeterministicRandom(long seed)
+  {
+    random = new Random((int)seed);
+  }
+  
+  public int Next() => random.Next();
+  public int Next(int maxValue) => random.Next(maxValue);
+  public int Next(int minValue, int maxValue) => random.Next(minValue, maxValue);
+  public float NextFloat() => (float)random.NextDouble();
+  public double NextDouble() => random.NextDouble();
+}
+```
+
+**时间工具（放在 Helpers 中）：**
+
+```csharp
+/// <summary>
+/// Tick 时间帮助类
+/// </summary>
+public static class TickHelper
+{
+  public static float GetDeltaTime(float tickRate) => 1f / tickRate;
+}
+```
+
+**数据传输对象与持久化：**
+
+```csharp
+/// <summary>
+/// 角色数据传输对象 - 用于战斗创建
+/// </summary>
+public class CharacterDTO
+{
+  public string CharacterId { get; set; }
+  public float Health { get; set; }
+  public List<EquipmentDTO> Equipment { get; set; }
+  public List<SkillDTO> Skills { get; set; }
+  public List<BehaviorStrategyDTO> Strategies { get; set; }
+}
+
+/// <summary>
+/// 角色持久化实体 - 存储在数据库
+/// </summary>
+public class ActorEntity
+{
+  public string Id { get; set; }
+  public string Name { get; set; }
+  // ... 其他持久化字段
+}
+
 /// <summary>
 /// 战斗种子文件 - 确保确定性战斗回放
 /// </summary>
 public class BattleSeed
 {
-  public long RandomSeed { get; set; }        // 随机数种子
-  public string MapId { get; set; }           // 地图ID
-  public string Version { get; set; }         // 游戏版本（确保兼容性）
-  public List<ActorSnapshot> PlayerSnapshots { get; set; }  // 玩家加入战斗时的属性快照
+  public Guid BattleGuid { get; set; }         // 用于生成随机数种子
+  public string MapId { get; set; }            // 地图ID
+  public string Version { get; set; }          // 游戏版本（确保兼容性）
+  public List<CharacterDTO> Characters { get; set; }  // 角色数据传输对象
 }
+```
 
+**阵营系统：**
+
+```csharp
 /// <summary>
-/// 演员属性快照 - 玩家加入战斗时的状态
+/// 阵营枚举 - 支持PvP和召唤物
 /// </summary>
-public class ActorSnapshot
+public enum EnumFaction
 {
-  public string ActorId { get; set; }
-  public Dictionary<string, object> Stats { get; set; }
-  public List<EquipmentSnapshot> Equipment { get; set; }
-  public List<SkillSnapshot> Skills { get; set; }
+  NotSpecified = 0,
+  Creator,      // 创造者阵营（玩家及其召唤物）
+  Enemy         // 敌对阵营（怪物及其召唤物）
 }
 ```
 
@@ -225,33 +361,50 @@ public class ActorSnapshot
 
 ```csharp
 /// <summary>
-/// Tick 上下文 - 战斗循环的核心参数
+/// Tick 上下文 - 战斗循环的核心参数，实现 IDisposable
 /// </summary>
-public class TickContext
+public class TickContext : IDisposable
 {
   public BattleSeed Seed { get; set; }
-  public Random Random { get; set; }          // 由种子初始化的随机数生成器
+  
+  // 两个随机数生成器：战斗逻辑 + 物品生成（录像回放时不需要物品随机）
+  public IRandom BattleRandom { get; set; }
+  public IRandom ItemRandom { get; set; }
+  
   public int CurrentTick { get; set; }        // 当前帧数（从0开始）
   public int MaxTick { get; set; }            // 最大帧数（根据地图最大时间计算）
   public float TickRate { get; set; }         // 每秒帧数（默认30）
-  public float DeltaTime => 1f / TickRate;    // 每帧时间间隔
   
   public IdleComponent Map { get; set; }      // 地图组件
   public List<IdleComponent> Projectiles { get; set; }  // 投射物列表
-  public List<IdleComponent> Players { get; set; }      // 玩家列表
-  public List<IdleComponent> Monsters { get; set; }     // 怪物列表（含NPC波次）
   
-  public bool IsBattleOver { get; set; }      // 战斗是否结束
+  // 按阵营分组的角色列表
+  public List<IdleComponent> CreatorFaction { get; set; }  // 创造者阵营（玩家及召唤物）
+  public List<IdleComponent> EnemyFaction { get; set; }    // 敌对阵营（怪物及召唤物）
+  
+  public bool IsBattleOver { get; set; }       // 战斗是否结束
   public EnumBattleResult Result { get; set; } // 战斗结果
+  
+  public void Dispose()
+  {
+    // 清理战斗资源
+    Map = null;
+    Projectiles?.Clear();
+    CreatorFaction?.Clear();
+    EnemyFaction?.Clear();
+  }
 }
 
 public enum EnumBattleResult
 {
   NotSpecified = 0,
-  Victory,        // 玩家胜利
-  Defeat,         // 玩家失败
-  Timeout,        // 超时
-  Draw            // 平局
+  Victory,          // 玩家胜利
+  Defeat,           // 玩家失败
+  Timeout,          // 超时
+  Draw,             // 平局
+  SystemTimeout,    // 系统超时退出
+  PlayerExit,       // 玩家主动退出
+  Error             // 异常报错
 }
 ```
 
@@ -268,9 +421,13 @@ public class BattleManager
     var context = new TickContext
     {
       Seed = seed,
-      Random = new Random((int)seed.RandomSeed),
+      BattleRandom = new DeterministicRandom(seed.BattleGuid),
+      ItemRandom = new DeterministicRandom(Guid.NewGuid()),  // 物品随机独立
       CurrentTick = 0,
       TickRate = 30f,  // 30帧/秒
+      Projectiles = new List<IdleComponent>(),
+      CreatorFaction = new List<IdleComponent>(),
+      EnemyFaction = new List<IdleComponent>()
     };
     
     // 根据地图ID和种子生成地图组件
@@ -278,11 +435,11 @@ public class BattleManager
     context.Map = mapProfile.GenerateMap(context);
     context.MaxTick = (int)(mapProfile.MaxPlayTime * context.TickRate);
     
-    // 根据玩家快照生成玩家组件
-    foreach (var snapshot in seed.PlayerSnapshots)
+    // 根据 CharacterDTO 生成角色组件
+    foreach (var characterDto in seed.Characters)
     {
-      var player = CreatePlayerFromSnapshot(snapshot, context);
-      context.Players.Add(player);
+      var character = CreateCharacterFromDTO(characterDto, context);
+      context.CreatorFaction.Add(character);
     }
     
     return context;
@@ -290,35 +447,50 @@ public class BattleManager
   
   public void RunBattle(TickContext context)
   {
-    while (context.CurrentTick < context.MaxTick && !context.IsBattleOver)
+    try
     {
-      ExecuteTick(context);
-      context.CurrentTick++;
+      while (context.CurrentTick < context.MaxTick && !context.IsBattleOver)
+      {
+        ExecuteTick(context);
+        context.CurrentTick++;
+      }
+      
+      // 检查战斗结果
+      if (!context.IsBattleOver)
+      {
+        context.Result = EnumBattleResult.Timeout;
+        context.IsBattleOver = true;
+      }
     }
-    
-    // 检查战斗结果
-    if (!context.IsBattleOver)
+    catch (Exception)
     {
-      context.Result = EnumBattleResult.Timeout;
+      context.Result = EnumBattleResult.Error;
+      context.IsBattleOver = true;
+    }
+    finally
+    {
+      context.Dispose();
     }
   }
   
   private void ExecuteTick(TickContext context)
   {
-    // 按顺序执行：投射物 -> 玩家 -> 怪物
-    foreach (var projectile in context.Projectiles.Where(p => IsAlive(p)))
+    // 1. 投射物：按飞行轨迹移动并检查碰撞（无行为逻辑）
+    foreach (var projectile in context.Projectiles.ToList())
     {
       projectile.OnTick(context);
     }
     
-    foreach (var player in context.Players.Where(p => IsAlive(p)))
+    // 2. 创造者阵营：执行行为逻辑
+    foreach (var actor in context.CreatorFaction.Where(a => IsAlive(a)))
     {
-      player.OnTick(context);
+      actor.OnTick(context);
     }
     
-    foreach (var monster in context.Monsters.Where(m => IsAlive(m)))
+    // 3. 敌对阵营：执行行为逻辑
+    foreach (var actor in context.EnemyFaction.Where(a => IsAlive(a)))
     {
-      monster.OnTick(context);
+      actor.OnTick(context);
     }
     
     // 检查战斗结束条件
@@ -327,15 +499,20 @@ public class BattleManager
   
   private void CheckBattleEnd(TickContext context)
   {
-    var allPlayersDead = context.Players.All(p => !IsAlive(p));
-    var allMonstersDead = context.Monsters.All(m => !IsAlive(m));
+    var allCreatorsDead = context.CreatorFaction.All(a => !IsAlive(a));
+    var allEnemiesDead = context.EnemyFaction.All(a => !IsAlive(a));
     
-    if (allPlayersDead)
+    if (allCreatorsDead && allEnemiesDead)
+    {
+      context.IsBattleOver = true;
+      context.Result = EnumBattleResult.Draw;
+    }
+    else if (allCreatorsDead)
     {
       context.IsBattleOver = true;
       context.Result = EnumBattleResult.Defeat;
     }
-    else if (allMonstersDead)
+    else if (allEnemiesDead)
     {
       context.IsBattleOver = true;
       context.Result = EnumBattleResult.Victory;
@@ -344,12 +521,16 @@ public class BattleManager
   
   private bool IsAlive(IdleComponent component)
   {
-    return component.Data.TryGetValue("Health", out var hp) && (float)hp > 0;
+    // 从组件中获取血量子组件检查
+    // 血量 <= 0 则死亡
+    return true; // 具体实现根据组件结构
   }
 }
 ```
 
 #### 1.3 可配置行为策略 (Behavior Strategy)
+
+**注意：行为策略只适用于玩家、怪物、NPC类型的组件。投射物没有行为逻辑，只按轨迹飞行并检查碰撞。**
 
 使用可配置的行为列表替代状态机，参考荣耀殿堂的策略设计。
 
@@ -516,18 +697,24 @@ public enum EnumResourceType
 }
 
 /// <summary>
-/// 资源配置 - 支持主资源和副资源
+/// 资源组件 - 作为角色的子组件存在
+/// 资源值动态计算，通过 OnTick 更新
 /// </summary>
-public class ResourceConfig
+public class ResourceComponent : IdleComponent
 {
-  public EnumResourceType PrimaryResource { get; set; }   // 主资源
-  public EnumResourceType SecondaryResource { get; set; } // 副资源
-  public float PrimaryMax { get; set; }
-  public float SecondaryMax { get; set; }
-  public float PrimaryRegenRate { get; set; }
-  public float SecondaryRegenRate { get; set; }
-  public bool ConvertOnFull { get; set; }  // 主资源满时是否转换为副资源
-  public float ConversionRate { get; set; } // 转换比例
+  public EnumResourceType ResourceType { get; set; }
+  public bool IsPrimary { get; set; }          // true=主资源, false=副资源
+  public float CurrentValue { get; set; }
+  public float MaxValue { get; set; }
+  public float RegenRate { get; set; }
+  public bool ConvertOnFull { get; set; }      // 满时是否转换为副资源
+  public float ConversionRate { get; set; }
+  
+  public override void OnTick(TickContext context)
+  {
+    var profile = ProfileManager.GetProfile(ProfileKey);
+    profile?.OnTick(this, context);
+  }
 }
 
 /// <summary>
@@ -540,26 +727,76 @@ public class SkillResourceCost
   public bool UsePrimary { get; set; }  // true=主资源, false=副资源
 }
 
-public class ActiveSkill : Skill
+/// <summary>
+/// 技能组件 - 作为角色的子组件存在
+/// </summary>
+public class SkillComponent : IdleComponent
 {
-  public float Cooldown { get; set; }
-  public SkillResourceCost ResourceCost { get; set; }  // 资源消耗（替代 ManaCost）
-  public float CastTime { get; set; }
-  public bool GeneratesResource { get; set; }  // 是否产生资源（如格斗家击中生成资源）
-  public float ResourceGenerated { get; set; } // 产生的资源量
+  public EnumSkillType SkillType { get; set; }
+  public float CurrentCooldown { get; set; }   // 当前冷却时间，<=0表示可用
+  public float CurrentCastTime { get; set; }   // 当前读条时间，>=0表示正在读条
+  public SkillResourceCost ResourceCost { get; set; }
+  
+  public override void OnTick(TickContext context)
+  {
+    var profile = ProfileManager.GetProfile(ProfileKey);
+    profile?.OnTick(this, context);
+    
+    // 冷却和读条时间递减（根据fps和属性计算）
+    var deltaTime = TickHelper.GetDeltaTime(context.TickRate);
+    if (CurrentCooldown > 0)
+    {
+      CurrentCooldown -= deltaTime;
+    }
+    if (CurrentCastTime > 0)
+    {
+      CurrentCastTime -= deltaTime;
+    }
+  }
 }
 
-public class SupportSkill : Skill
+/// <summary>
+/// 持续性效果组件 - 作为角色的子组件存在
+/// 如眩晕、中毒等状态
+/// </summary>
+public class DurationComponent : IdleComponent
 {
-  public List<SkillTag> SupportedTags { get; set; }
-  public List<SkillModifier> Modifiers { get; set; }
+  public EnumDurationType DurationType { get; set; }
+  public float RemainingDuration { get; set; }  // 剩余持续时间
+  
+  public override void OnTick(TickContext context)
+  {
+    var profile = ProfileManager.GetProfile(ProfileKey);
+    profile?.OnTick(this, context);
+    
+    // 持续时间递减
+    var deltaTime = TickHelper.GetDeltaTime(context.TickRate);
+    RemainingDuration -= deltaTime;
+    
+    // 持续时间结束后移除
+    if (RemainingDuration <= 0)
+    {
+      RemoveParent();
+    }
+  }
 }
 
-public class TriggerSkill : Skill
+public enum EnumDurationType
 {
-  public TriggerCondition Condition { get; set; }
-  public float TriggerChance { get; set; }
-  public float InternalCooldown { get; set; }
+  NotSpecified = 0,
+  Stun,       // 眩晕
+  Poison,     // 中毒
+  Burn,       // 燃烧
+  Slow,       // 减速
+  Buff        // 增益
+}
+
+public enum EnumSkillType
+{
+  NotSpecified = 0,
+  Active,     // 主动技能
+  Support,    // 辅助技能
+  Trigger     // 触发技能
 }
 ```
 
