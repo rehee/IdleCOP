@@ -1,3 +1,4 @@
+using Idle.Utility.Entities;
 using IdleCOP.Gameplay;
 
 namespace IdleCOP.Data.Entities;
@@ -5,13 +6,8 @@ namespace IdleCOP.Data.Entities;
 /// <summary>
 /// 技能实体
 /// </summary>
-public class SkillEntity
+public class SkillEntity : BaseEntity
 {
-  /// <summary>
-  /// 唯一标识符
-  /// </summary>
-  public Guid Id { get; set; } = Guid.NewGuid();
-
   /// <summary>
   /// 对应的 Profile Key
   /// </summary>

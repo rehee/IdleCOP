@@ -1,20 +1,12 @@
+using Idle.Utility.Entities;
+
 namespace IdleCOP.Data.Entities;
 
 /// <summary>
 /// 角色实体
 /// </summary>
-public class ActorEntity
+public class ActorEntity : BaseEntity
 {
-  /// <summary>
-  /// 唯一标识符
-  /// </summary>
-  public Guid Id { get; set; } = Guid.NewGuid();
-
-  /// <summary>
-  /// 名称
-  /// </summary>
-  public string? Name { get; set; }
-
   /// <summary>
   /// 等级
   /// </summary>

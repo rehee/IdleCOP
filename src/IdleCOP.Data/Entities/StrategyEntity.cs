@@ -1,15 +1,12 @@
+using Idle.Utility.Entities;
+
 namespace IdleCOP.Data.Entities;
 
 /// <summary>
 /// 策略实体
 /// </summary>
-public class StrategyEntity
+public class StrategyEntity : BaseEntity
 {
-  /// <summary>
-  /// 唯一标识符
-  /// </summary>
-  public string? Id { get; set; }
-
   /// <summary>
   /// 优先级（高优先）
   /// </summary>

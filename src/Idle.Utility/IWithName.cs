@@ -1,4 +1,4 @@
-namespace Idle.Core;
+namespace Idle.Utility;
 
 /// <summary>
 /// 提供名称和描述的接口

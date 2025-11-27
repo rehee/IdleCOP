@@ -1,4 +1,4 @@
-namespace Idle.Core.Components;
+namespace Idle.Utility.Components;
 
 /// <summary>
 /// 组件基类 - 游戏中实例化的数据对象，保存数据和状态

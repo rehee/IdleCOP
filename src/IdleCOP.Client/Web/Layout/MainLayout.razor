@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+
+<Layout SideWidth="200px" IsPage="true" IsFullSide="true" ShowFooter="true">
+    <Side>
+        <NavMenu />
+    </Side>
+    <Header>
+        <div class="d-flex align-items-center px-3">
+            <h5 class="mb-0">IdleCOP - ARPG 放置类游戏</h5>
+        </div>
+    </Header>
+    <Main>
+        <div class="p-3">
+            @Body
+        </div>
+    </Main>
+    <Footer>
+        <div class="text-center py-2">
+            <span>IdleCOP &copy; @DateTime.Now.Year</span>
+        </div>
+    </Footer>
+</Layout>

@@ -1,4 +1,4 @@
-namespace Idle.Core;
+namespace Idle.Utility;
 
 /// <summary>
 /// 随机数生成器接口

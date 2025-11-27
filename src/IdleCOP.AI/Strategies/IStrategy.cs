@@ -1,4 +1,4 @@
-using Idle.Core.Components;
+using Idle.Utility.Components;
 using Idle.Core.Context;
 
 namespace IdleCOP.AI.Strategies;

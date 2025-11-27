@@ -1,3 +1,4 @@
+using Idle.Utility.Entities;
 using IdleCOP.Gameplay;
 
 namespace IdleCOP.Data.Entities;
@@ -5,13 +6,8 @@ namespace IdleCOP.Data.Entities;
 /// <summary>
 /// 装备实体
 /// </summary>
-public class EquipmentEntity
+public class EquipmentEntity : BaseEntity
 {
-  /// <summary>
-  /// 唯一标识符
-  /// </summary>
-  public Guid Id { get; set; } = Guid.NewGuid();
-
   /// <summary>
   /// 底材类型
   /// </summary>

@@ -1,7 +1,6 @@
-using Idle.Core.Components;
-using Idle.Core.Context;
+using Idle.Utility.Components;
 
-namespace Idle.Core.Profiles;
+namespace Idle.Utility.Profiles;
 
 /// <summary>
 /// Profile 基类 - 组件对应的逻辑处理单例，包含业务逻辑
@@ -32,9 +31,4 @@ public abstract class IdleProfile : IWithName
   /// 获取有效的 Key 值
   /// </summary>
   public int EffectiveKey => Key != 0 ? Key : KeyOverride ?? 0;
-
-  /// <summary>
-  /// 每个 Tick 执行的逻辑
-  /// </summary>
-  public abstract void OnTick(IdleComponent component, TickContext context);
 }
