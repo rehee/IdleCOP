@@ -120,6 +120,9 @@ Closes #123
 - 枚举类必须以 `Enum` 开头，默认值必须为 `NotSpecified`
 - 代码缩进使用 2 个空格
 - 保持方法简短，单一职责
+- **所有扩展方法必须命名为 `XXXHelper` 并放在 `Helpers` 目录下**
+- **所有实体、DTO、Component 都以 `Guid` 作为 Id**
+- **持久化数据保存为 `XXXEntity`，Entity 根据对应的 Profile 生成 `IdleComponent`**
 
 ### Component-Profile 方法对应规范
 

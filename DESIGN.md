@@ -48,9 +48,7 @@
 ```
 src/
 ├── Idle.Utility/           # 通用工具库（独立，无游戏依赖）
-│   ├── Extensions/         # 扩展方法
-│   ├── Helpers/            # 帮助类
-│   └── Common/             # 通用工具
+│   └── Helpers/            # 帮助类（包含所有扩展方法，命名为 XXXHelper）
 │
 ├── Idle.Core/              # 核心基础库（通用玩法框架）
 │   ├── Components/         # 组件系统基类
@@ -101,6 +99,10 @@ src/
 组件的逻辑在 `IdleProfile` 中，`IdleProfile` 是单例模式。
 
 每个 `IdleComponent` 对应一个 `IdleProfile`，每个 `IdleProfile` 都有唯一的 Key (int)。
+
+**数据持久化规范：**
+- 游戏的持久化数据保存为 `XXXEntity`（如 `ActorEntity`, `SkillEntity`）
+- Entity 根据对应的 Profile 生成 `IdleComponent`
 
 **组件层级结构：**
 - 演员（Actor）是父组件
@@ -153,9 +155,9 @@ public abstract class IdleComponent
   }
   
   /// <summary>
-  /// 设置父组件（防止循环引用）
+  /// 设置父组件（防止循环引用），可重载
   /// </summary>
-  public void SetParent(IdleComponent? newParent)
+  public virtual void SetParent(IdleComponent? newParent)
   {
     // 检查循环引用
     if (newParent != null)
@@ -175,18 +177,46 @@ public abstract class IdleComponent
   }
   
   /// <summary>
-  /// 移除父组件
+  /// 移除父组件，可重载
   /// </summary>
-  public void RemoveParent()
+  public virtual void RemoveParent()
   {
     Parent = null;
   }
   
   public virtual void OnTick(TickContext context)
   {
-    // 先执行自身逻辑
+    // 执行自身逻辑（不自动执行子组件的OnTick）
     var profile = ProfileManager.GetProfile(ProfileKey);
     profile?.OnTick(this, context);
+  }
+}
+
+/// <summary>
+/// 组件帮助类 - 用于传递TickContext到子组件
+/// </summary>
+public static class ComponentHelper
+{
+  /// <summary>
+  /// 对子组件集合依次执行OnTick
+  /// </summary>
+  public static void TickChildren(IEnumerable<IdleComponent> children, TickContext context)
+  {
+    foreach (var child in children)
+    {
+      child.OnTick(context);
+    }
+  }
+  
+  /// <summary>
+  /// 对子组件集合执行自定义操作
+  /// </summary>
+  public static void ForEachChild(IEnumerable<IdleComponent> children, Action<IdleComponent, TickContext> action, TickContext context)
+  {
+    foreach (var child in children)
+    {
+      action(child, context);
+    }
   }
 }
 
@@ -311,10 +341,11 @@ public static class TickHelper
 ```csharp
 /// <summary>
 /// 角色数据传输对象 - 用于战斗创建
+/// 注意：阵营不存储在DTO中，因为阵营可以在战斗中改变（如魅惑技能）
 /// </summary>
 public class CharacterDTO
 {
-  public string CharacterId { get; set; }
+  public Guid Id { get; set; }  // 所有实体、DTO、Component都以Guid作为Id
   public float Health { get; set; }
   public List<EquipmentDTO> Equipment { get; set; }
   public List<SkillDTO> Skills { get; set; }
@@ -322,11 +353,11 @@ public class CharacterDTO
 }
 
 /// <summary>
-/// 角色持久化实体 - 存储在数据库
+/// 角色持久化实体 - 存储方式根据平台不同（数据库、IndexedDB等）
 /// </summary>
 public class ActorEntity
 {
-  public string Id { get; set; }
+  public Guid Id { get; set; }  // 所有实体、DTO、Component都以Guid作为Id
   public string Name { get; set; }
   // ... 其他持久化字段
 }
@@ -339,7 +370,12 @@ public class BattleSeed
   public Guid BattleGuid { get; set; }         // 用于生成随机数种子
   public string MapId { get; set; }            // 地图ID
   public string Version { get; set; }          // 游戏版本（确保兼容性）
-  public List<CharacterDTO> Characters { get; set; }  // 角色数据传输对象
+  
+  // 参与战斗的角色ID列表（区分阵营）
+  public List<Guid> CreatorCharacterIds { get; set; }  // 创造者阵营角色ID
+  public List<Guid> EnemyCharacterIds { get; set; }    // 敌对阵营角色ID
+  
+  public List<CharacterDTO> Characters { get; set; }   // 角色数据传输对象
 }
 ```
 
@@ -348,6 +384,7 @@ public class BattleSeed
 ```csharp
 /// <summary>
 /// 阵营枚举 - 支持PvP和召唤物
+/// 注意：阵营存储在Component中而非DTO，因为阵营可以动态改变（如魅惑技能）
 /// </summary>
 public enum EnumFaction
 {
