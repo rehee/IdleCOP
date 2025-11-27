@@ -36,13 +36,26 @@ IdleCOP/
 ├── docs-data-models.md       # 数据模型示例
 ├── docs-ai-instructions.md   # 指令/行为脚本详细说明
 ├── docs-roadmap.md           # 功能迭代与时间线
+├── IdleCOP.sln               # 解决方案文件
+├── configs/                  # 配置文件
+│   ├── equipment/            # 装备配置
+│   ├── skills/               # 技能配置
+│   ├── effects/              # 效果配置
+│   ├── strategies/           # 策略配置
+│   └── maps/                 # 地图配置
+├── src/
+│   ├── Idle.Utility/         # 通用工具库
+│   ├── Idle.Core/            # 核心基础库
+│   ├── IdleCOP.Gameplay/     # 游戏玩法实现
+│   ├── IdleCOP.AI/           # AI与行为
+│   ├── IdleCOP.Data/         # 数据管理
+│   └── IdleCOP.Client/       # 客户端
+│       └── Web/              # Blazor Web
 └── .github/
     └── ISSUE_TEMPLATE.md     # 提案/任务模板
 ```
 
 ## 快速开始
-
-> 项目处于设计阶段，开发环境搭建指南将在后续更新。
 
 ### 前置要求
 
@@ -56,7 +69,15 @@ IdleCOP/
 git clone https://github.com/rehee/IdleCOP.git
 cd IdleCOP
 
-# 后续开发中...
+# 恢复依赖
+dotnet restore
+
+# 构建项目
+dotnet build
+
+# 运行 Web 客户端
+cd src/IdleCOP.Client/Web
+dotnet run
 ```
 
 ## 文档导航

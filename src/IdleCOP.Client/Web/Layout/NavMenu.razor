@@ -1,0 +1,10 @@
+﻿<Menu Items="@MenuItems" IsVertical="true" IsAccordion="true" />
+
+@code {
+    private IEnumerable<MenuItem> MenuItems { get; set; } = new List<MenuItem>
+    {
+        new MenuItem { Text = "首页", Icon = "fa-solid fa-home", Url = "/" },
+        new MenuItem { Text = "计数器", Icon = "fa-solid fa-plus", Url = "/counter" },
+        new MenuItem { Text = "天气", Icon = "fa-solid fa-cloud", Url = "/weather" }
+    };
+}

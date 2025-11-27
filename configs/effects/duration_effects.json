@@ -1,0 +1,5 @@
+{
+  "$schema": "持续性效果配置",
+  "description": "定义持续性效果",
+  "durationEffects": []
+}

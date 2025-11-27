@@ -1,0 +1,5 @@
+{
+  "$schema": "掉落表配置",
+  "description": "定义装备掉落规则",
+  "dropTables": []
+}

@@ -1,0 +1,70 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
+
+# NuGet packages
+packages/
+*.lock.json
+
+# Test results
+[Tt]est[Rr]esults/
+[Bb]uild[Ll]og.*
+
+# NCrunch
+*.ncrunch*
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# Resharper
+_ReSharper*/
+*.resharper
+
+# StyleCop
+StyleCopReport.xml
+
+# Local settings
+*.local.json
+appsettings.Development.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temp files
+*.tmp
+*.temp
+
+# dotnet tools
+.dotnet/
+
+# Publish directory
+publish/
