@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Idle.Core</RootNamespace>
+    <AssemblyName>Idle.Core</AssemblyName>
+    <Description>Core base library for IdleCOP - generic gameplay framework</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Idle.Utility\Idle.Utility.csproj" />
+  </ItemGroup>
+
+</Project>

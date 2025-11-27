@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>IdleCOP.Data</RootNamespace>
+    <AssemblyName>IdleCOP.Data</AssemblyName>
+    <Description>Data management for IdleCOP</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Idle.Core\Idle.Core.csproj" />
+  </ItemGroup>
+
+</Project>

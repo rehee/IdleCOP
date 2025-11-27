@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <RootNamespace>IdleCOP.Client.Web</RootNamespace>
+    <AssemblyName>IdleCOP.Client.Web</AssemblyName>
+    <Description>Blazor WebAssembly client for IdleCOP</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IdleCOP.Gameplay\IdleCOP.Gameplay.csproj" />
+    <ProjectReference Include="..\IdleCOP.AI\IdleCOP.AI.csproj" />
+    <ProjectReference Include="..\IdleCOP.Data\IdleCOP.Data.csproj" />
+  </ItemGroup>
+
+</Project>

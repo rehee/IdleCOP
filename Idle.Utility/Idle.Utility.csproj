@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Idle.Utility</RootNamespace>
+    <AssemblyName>Idle.Utility</AssemblyName>
+    <Description>Common utility library for IdleCOP - independent of game logic</Description>
+  </PropertyGroup>
+
+</Project>

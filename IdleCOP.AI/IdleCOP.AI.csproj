@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>IdleCOP.AI</RootNamespace>
+    <AssemblyName>IdleCOP.AI</AssemblyName>
+    <Description>AI and behavior system for IdleCOP</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Idle.Core\Idle.Core.csproj" />
+  </ItemGroup>
+
+</Project>
