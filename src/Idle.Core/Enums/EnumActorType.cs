@@ -21,11 +21,6 @@ public enum EnumActorType
   Monster,
 
   /// <summary>
-  /// 召唤物
-  /// </summary>
-  Summon,
-
-  /// <summary>
   /// 投射物
   /// </summary>
   Projectile

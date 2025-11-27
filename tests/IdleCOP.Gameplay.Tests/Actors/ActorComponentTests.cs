@@ -3,6 +3,7 @@ using Idle.Core;
 using Idle.Core.DTOs;
 using Idle.Core.Helpers;
 using IdleCOP.Gameplay.Actors;
+using IdleCOP.Gameplay.Helpers;
 
 namespace IdleCOP.Gameplay.Tests.Actors;
 
@@ -28,13 +29,13 @@ public class ActorComponentTests
   }
 
   [Fact]
-  public void ActorComponent_FromDTO_CreatesCorrectComponent()
+  public void ActorComponentHelper_FromDTO_CreatesCorrectComponent()
   {
     // Arrange
     var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
 
     // Act
-    var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
+    var actor = ActorComponentHelper.FromDTO(dto, EnumFaction.Creator);
 
     // Assert
     Assert.Equal(dto.Id, actor.Id);
@@ -70,7 +71,7 @@ public class ActorComponentTests
   {
     // Arrange
     var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
-    var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
+    var actor = ActorComponentHelper.FromDTO(dto, EnumFaction.Creator);
     var initialHealth = actor.CombatStats.CurrentHealth;
 
     // Act
@@ -86,7 +87,7 @@ public class ActorComponentTests
   {
     // Arrange
     var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
-    var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
+    var actor = ActorComponentHelper.FromDTO(dto, EnumFaction.Creator);
 
     // Act
     actor.TakeDamage(1000);
@@ -101,7 +102,7 @@ public class ActorComponentTests
   {
     // Arrange
     var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
-    var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
+    var actor = ActorComponentHelper.FromDTO(dto, EnumFaction.Creator);
     actor.TakeDamage(50);
     var healthAfterDamage = actor.CombatStats.CurrentHealth;
 
@@ -117,7 +118,7 @@ public class ActorComponentTests
   {
     // Arrange
     var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
-    var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
+    var actor = ActorComponentHelper.FromDTO(dto, EnumFaction.Creator);
     var maxHealth = actor.CombatStats.MaxHealth;
 
     // Act

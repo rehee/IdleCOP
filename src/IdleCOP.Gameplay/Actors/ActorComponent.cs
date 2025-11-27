@@ -50,23 +50,6 @@ public class ActorComponent : IdleComponent
   public int AttackCooldown { get; set; }
 
   /// <summary>
-  /// 从DTO创建组件
-  /// </summary>
-  public static ActorComponent FromDTO(CharacterDTO dto, EnumFaction faction)
-  {
-    return new ActorComponent
-    {
-      Id = dto.Id,
-      Name = dto.Name,
-      Level = dto.Level,
-      ActorType = dto.ActorType,
-      ProfileKey = dto.ProfileKey,
-      Faction = faction,
-      CombatStats = dto.CombatStats.Clone()
-    };
-  }
-
-  /// <summary>
   /// 受到伤害
   /// </summary>
   public void TakeDamage(int damage)

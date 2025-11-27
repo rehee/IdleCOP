@@ -9,6 +9,7 @@ using Idle.Utility.Helpers;
 using IdleCOP.Gameplay.Actors;
 using IdleCOP.Gameplay.Actors.Monsters;
 using IdleCOP.Gameplay.Actors.Players;
+using IdleCOP.Gameplay.Helpers;
 using IdleCOP.Gameplay.Maps.Profiles;
 
 namespace IdleCOP.Gameplay.Maps;
@@ -103,7 +104,7 @@ public class MapComponent : IdleComponent
   {
     foreach (var characterDto in request.CreatorFactionCharacters)
     {
-      var actor = ActorComponent.FromDTO(characterDto, EnumFaction.Creator);
+      var actor = ActorComponentHelper.FromDTO(characterDto, EnumFaction.Creator);
       context.CreatorFaction.Add(actor);
     }
   }
@@ -115,7 +116,7 @@ public class MapComponent : IdleComponent
   {
     foreach (var characterDto in request.EnemyFactionCharacters)
     {
-      var actor = ActorComponent.FromDTO(characterDto, EnumFaction.Enemy);
+      var actor = ActorComponentHelper.FromDTO(characterDto, EnumFaction.Enemy);
       context.EnemyFaction.Add(actor);
     }
   }
@@ -145,7 +146,7 @@ public class MapComponent : IdleComponent
           monsterProfile.Key);
 
         // 应用等级缩放
-        var actor = ActorComponent.FromDTO(monsterDto, EnumFaction.Enemy);
+        var actor = ActorComponentHelper.FromDTO(monsterDto, EnumFaction.Enemy);
         monsterProfile.ApplyLevelScaling(actor);
 
         context.EnemyFaction.Add(actor);
