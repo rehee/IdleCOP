@@ -81,36 +81,36 @@
 ## 项目结构
 
 ```
-src/
-├── Idle.Utility/           # 通用工具库（独立，无游戏依赖）
-│   └── Helpers/            # 帮助类（XXXHelper）
+IdleCOP/
+├── Idle.Utility/             # 通用工具库（独立，无游戏依赖）
+│   └── Helpers/              # 帮助类（XXXHelper）
 │
-├── Idle.Core/              # 核心基础库（通用玩法框架）
-│   ├── Components/         # 组件系统基类
-│   ├── Profiles/           # Profile 单例逻辑
-│   ├── Context/            # TickContext 战斗上下文
-│   ├── Repository/         # IRepository/IContext 数据访问抽象
-│   └── DI/                 # 依赖注入抽象
+├── Idle.Core/                # 核心基础库（通用玩法框架）
+│   ├── Components/           # 组件系统基类
+│   ├── Profiles/             # Profile 单例逻辑
+│   ├── Context/              # TickContext 战斗上下文
+│   ├── Repository/           # IRepository/IContext 数据访问抽象
+│   └── DI/                   # 依赖注入抽象
 │
-├── IdleCOP.Gameplay/       # COP 游戏玩法实现
-│   ├── Combat/             # 战斗系统
-│   ├── Skills/             # 技能系统
-│   ├── Equipment/          # 装备系统
-│   ├── Maps/               # 地图系统
-│   └── Instructions/       # 指令系统
+├── IdleCOP.Gameplay/         # COP 游戏玩法实现
+│   ├── Combat/               # 战斗系统
+│   ├── Skills/               # 技能系统
+│   ├── Equipment/            # 装备系统
+│   ├── Maps/                 # 地图系统
+│   └── Instructions/         # 指令系统
 │
-├── IdleCOP.AI/             # AI与行为
-│   └── Strategies/         # 可配置策略列表
+├── IdleCOP.AI/               # AI与行为
+│   └── Strategies/           # 可配置策略列表
 │
-├── IdleCOP.Data/           # 数据管理
-│   ├── Entities/           # 持久化实体
-│   ├── DTOs/               # 数据传输对象
-│   └── Configs/            # 配置文件
+├── IdleCOP.Data/             # 数据管理
+│   ├── Entities/             # 持久化实体
+│   ├── DTOs/                 # 数据传输对象
+│   └── Configs/              # 配置文件
 │
-└── IdleCOP.Client/         # 客户端
-    ├── Web/                # Blazor Web
-    ├── Desktop/            # WPF Blazor Hybrid
-    └── Mobile/             # MAUI Blazor Hybrid
+└── IdleCOP.Client.Web/       # Blazor Web 客户端
+    ├── Pages/                # Blazor 页面
+    ├── Shared/               # 共享组件
+    └── wwwroot/              # 静态资源
 ```
 
 ### 配置文件结构
