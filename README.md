@@ -32,11 +32,10 @@ IdleCOP/
 ├── README.md                 # 项目说明
 ├── DESIGN.md                 # 主设计文档
 ├── CONTRIBUTING.md           # 贡献规范
-├── docs/
-│   ├── gameplay.md           # 玩法细节分解
-│   ├── data-models.md        # 数据模型示例
-│   ├── ai-instructions.md    # 指令/行为脚本详细说明
-│   └── roadmap.md            # 功能迭代与时间线
+├── docs-gameplay.md          # 玩法细节分解
+├── docs-data-models.md       # 数据模型示例
+├── docs-ai-instructions.md   # 指令/行为脚本详细说明
+├── docs-roadmap.md           # 功能迭代与时间线
 └── .github/
     └── ISSUE_TEMPLATE.md     # 提案/任务模板
 ```
@@ -63,10 +62,10 @@ cd IdleCOP
 ## 文档导航
 
 - [设计文档](DESIGN.md) - 系统接口与架构设计
-- [玩法细节](docs/gameplay.md) - 游戏玩法详细说明
-- [数据模型](docs/data-models.md) - 数据结构示例
-- [AI指令系统](docs/ai-instructions.md) - 行为脚本说明
-- [开发路线图](docs/roadmap.md) - 功能迭代计划
+- [玩法细节](docs-gameplay.md) - 游戏玩法详细说明
+- [数据模型](docs-data-models.md) - 数据结构示例
+- [AI指令系统](docs-ai-instructions.md) - 行为脚本说明
+- [开发路线图](docs-roadmap.md) - 功能迭代计划
 - [贡献指南](CONTRIBUTING.md) - 如何参与项目
 
 ## 开发里程碑

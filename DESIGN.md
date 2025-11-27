@@ -449,7 +449,7 @@ configs/
 
 ### B. 相关文档
 
-- [玩法细节](docs/gameplay.md)
-- [数据模型](docs/data-models.md)
-- [AI指令系统](docs/ai-instructions.md)
-- [开发路线图](docs/roadmap.md)
+- [玩法细节](docs-gameplay.md)
+- [数据模型](docs-data-models.md)
+- [AI指令系统](docs-ai-instructions.md)
+- [开发路线图](docs-roadmap.md)
