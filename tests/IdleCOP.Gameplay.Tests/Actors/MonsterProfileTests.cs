@@ -1,6 +1,7 @@
 using Xunit;
 using Idle.Core.DTOs;
 using IdleCOP.Gameplay.Actors;
+using IdleCOP.Gameplay.Actors.Monsters;
 
 namespace IdleCOP.Gameplay.Tests.Actors;
 
@@ -16,7 +17,7 @@ public class MonsterProfileTests
     var profile = MonsterProfiles.SkeletonWarrior;
 
     // Assert
-    Assert.Equal((int)EnumMonsterProfile.SkeletonWarrior, profile.Key);
+    Assert.Equal((int)EnumMonster.SkeletonWarrior, profile.Key);
     Assert.Equal(100, profile.Key);
   }
 
@@ -34,7 +35,7 @@ public class MonsterProfileTests
   public void MonsterProfile_AllProfiles_HaveUniqueKeys()
   {
     // Arrange
-    var profiles = new[]
+    var profiles = new MonsterProfile[]
     {
       MonsterProfiles.SkeletonWarrior,
       MonsterProfiles.SkeletonArcher,
@@ -54,7 +55,7 @@ public class MonsterProfileTests
   public void MonsterProfile_GetProfile_ReturnsCorrectProfile()
   {
     // Arrange & Act
-    var profile = MonsterProfiles.GetProfile(EnumMonsterProfile.Goblin);
+    var profile = MonsterProfiles.GetProfile(EnumMonster.Goblin);
 
     // Assert
     Assert.NotNull(profile);
@@ -77,7 +78,7 @@ public class MonsterProfileTests
   public void MonsterProfile_GetProfile_NotSpecified_ReturnsNull()
   {
     // Arrange & Act
-    var profile = MonsterProfiles.GetProfile(EnumMonsterProfile.NotSpecified);
+    var profile = MonsterProfiles.GetProfile(EnumMonster.NotSpecified);
 
     // Assert
     Assert.Null(profile);

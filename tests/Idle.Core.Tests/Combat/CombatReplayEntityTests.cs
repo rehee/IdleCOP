@@ -2,6 +2,7 @@ using Xunit;
 using Idle.Core;
 using Idle.Core.Combat;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 
 namespace Idle.Core.Tests.Combat;
 
@@ -26,7 +27,7 @@ public class CombatReplayEntityTests
   }
 
   [Fact]
-  public void CombatReplayEntity_ToCombatRequest_CreatesCorrectRequest()
+  public void CombatReplayHelper_ToCombatRequest_CreatesCorrectRequest()
   {
     // Arrange
     var entity = new CombatReplayEntity
@@ -41,12 +42,12 @@ public class CombatReplayEntityTests
       ItemSeed = 67890,
       CreatorFactionCharacters = new List<CharacterDTO>
       {
-        CharacterDTO.CreatePlayer("Player1", 10)
+        CharacterDTOHelper.CreatePlayer("Player1", 10)
       }
     };
 
     // Act
-    var request = entity.ToCombatRequest();
+    var request = CombatReplayHelper.ToCombatRequest(entity);
 
     // Assert
     Assert.Equal(entity.CreatorCharacterId, request.CreatorCharacterId);
@@ -61,7 +62,7 @@ public class CombatReplayEntityTests
   }
 
   [Fact]
-  public void CombatReplayEntity_FromCombatRequest_CreatesCorrectEntity()
+  public void CombatReplayHelper_FromCombatRequest_CreatesCorrectEntity()
   {
     // Arrange
     var creatorId = Guid.NewGuid();
@@ -77,12 +78,12 @@ public class CombatReplayEntityTests
       ItemSeed = 22222,
       CreatorFactionCharacters = new List<CharacterDTO>
       {
-        CharacterDTO.CreatePlayer("Player1", 15)
+        CharacterDTOHelper.CreatePlayer("Player1", 15)
       }
     };
 
     // Act
-    var entity = CombatReplayEntity.FromCombatRequest(request);
+    var entity = CombatReplayHelper.FromCombatRequest(request);
 
     // Assert
     Assert.Equal(request.CreatorCharacterId, entity.CreatorCharacterId);

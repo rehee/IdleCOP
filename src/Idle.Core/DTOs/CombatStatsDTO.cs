@@ -96,30 +96,6 @@ public class CombatStatsDTO
   public int ChaosResistance { get; set; }
 
   /// <summary>
-  /// 创建默认战斗面板
-  /// </summary>
-  public static CombatStatsDTO CreateDefault(int level = 1)
-  {
-    return new CombatStatsDTO
-    {
-      MaxHealth = 100 + level * 10,
-      CurrentHealth = 100 + level * 10,
-      MaxEnergy = 50 + level * 5,
-      CurrentEnergy = 50 + level * 5,
-      Strength = 10 + level,
-      Dexterity = 10 + level,
-      Intelligence = 10 + level,
-      PhysicalDamageMin = 5 + level,
-      PhysicalDamageMax = 10 + level * 2,
-      AttackSpeed = 1.0f,
-      CriticalChance = 5.0f,
-      CriticalMultiplier = 1.5f,
-      Armor = level * 5,
-      Evasion = level * 3
-    };
-  }
-
-  /// <summary>
   /// 克隆战斗面板
   /// </summary>
   public CombatStatsDTO Clone()
@@ -146,4 +122,5 @@ public class CombatStatsDTO
       ChaosResistance = ChaosResistance
     };
   }
+
 }

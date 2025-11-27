@@ -133,3 +133,18 @@ public abstract class ActorProfile : IdleProfile
     actor.CombatStats.Evasion = level * 3;
   }
 }
+
+/// <summary>
+/// 泛型演员 Profile 基类 - 使用枚举类型约束
+/// </summary>
+/// <typeparam name="TEnum">枚举类型</typeparam>
+public abstract class ActorProfile<TEnum> : ActorProfile where TEnum : struct, Enum
+{
+  /// <summary>
+  /// Profile 对应的枚举值
+  /// </summary>
+  public abstract TEnum ProfileType { get; }
+
+  /// <inheritdoc/>
+  public override int Key => Convert.ToInt32(ProfileType);
+}

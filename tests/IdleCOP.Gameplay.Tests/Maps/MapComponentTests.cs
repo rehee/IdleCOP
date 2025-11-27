@@ -3,8 +3,10 @@ using Idle.Core;
 using Idle.Core.Combat;
 using Idle.Core.Context;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 using IdleCOP.Gameplay.Actors;
 using IdleCOP.Gameplay.Maps;
+using IdleCOP.Gameplay.Maps.Profiles;
 
 namespace IdleCOP.Gameplay.Tests.Maps;
 
@@ -17,12 +19,17 @@ public class MapComponentTests
   public void MapComponent_Initialize_CreatesValidComponent()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
 
@@ -41,12 +48,17 @@ public class MapComponentTests
   public void MapComponent_Initialize_SetsMaxTick()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
 
@@ -62,12 +74,17 @@ public class MapComponentTests
   public void MapComponent_Initialize_SetsBattleRandom()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
 
@@ -83,13 +100,18 @@ public class MapComponentTests
   public void MapComponent_Initialize_ReplayMode_NoItemRandom()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
-    request.IsReplay = true;
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player },
+      IsReplay = true
+    };
 
     using var context = new TickContext();
 
@@ -106,12 +128,17 @@ public class MapComponentTests
   public void MapComponent_Initialize_PvE_GeneratesWaves()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
 
@@ -127,14 +154,19 @@ public class MapComponentTests
   public void MapComponent_Initialize_PvP_SpawnsEnemyPlayers()
   {
     // Arrange
-    var player1 = CharacterDTO.CreatePlayer("Player1", 10);
-    var player2 = CharacterDTO.CreatePlayer("Player2", 10);
-    var request = CombatRequest.CreatePvP(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.PvPArena,
-      1, 10,
-      new List<CharacterDTO> { player1 },
-      new List<CharacterDTO> { player2 });
+    var player1 = CharacterDTOHelper.CreatePlayer("Player1", 10);
+    var player2 = CharacterDTOHelper.CreatePlayer("Player2", 10);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.PvPArena,
+      MapDifficulty = 1,
+      CreatorLevel = 10,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player1 },
+      EnemyFactionCharacters = new List<CharacterDTO> { player2 }
+    };
 
     using var context = new TickContext();
 
@@ -151,12 +183,17 @@ public class MapComponentTests
   public void MapComponent_Initialize_InvalidMapId_Throws()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      9999, // Invalid map ID
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = 9999, // Invalid map ID
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
 
@@ -168,12 +205,17 @@ public class MapComponentTests
   public void MapComponent_GenerateReplayEntity_CreatesCorrectEntity()
   {
     // Arrange
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 5,
-      new List<CharacterDTO> { player });
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 5,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     using var context = new TickContext();
     var map = MapComponent.Initialize(request, context);

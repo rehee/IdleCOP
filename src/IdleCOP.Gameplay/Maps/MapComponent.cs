@@ -2,10 +2,14 @@ using Idle.Core;
 using Idle.Core.Combat;
 using Idle.Core.Context;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 using Idle.Utility;
 using Idle.Utility.Components;
 using Idle.Utility.Helpers;
 using IdleCOP.Gameplay.Actors;
+using IdleCOP.Gameplay.Actors.Monsters;
+using IdleCOP.Gameplay.Actors.Players;
+using IdleCOP.Gameplay.Maps.Profiles;
 
 namespace IdleCOP.Gameplay.Maps;
 
@@ -135,7 +139,7 @@ public class MapComponent : IdleComponent
 
       for (int i = 0; i < count; i++)
       {
-        var monsterDto = CharacterDTO.CreateMonster(
+        var monsterDto = CharacterDTOHelper.CreateMonster(
           monsterProfile.Name ?? "怪物",
           creatorLevel,
           monsterProfile.Key);

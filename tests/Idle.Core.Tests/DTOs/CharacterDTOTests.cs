@@ -1,5 +1,6 @@
 using Xunit;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 
 namespace Idle.Core.Tests.DTOs;
 
@@ -26,10 +27,10 @@ public class CharacterDTOTests
   }
 
   [Fact]
-  public void CharacterDTO_CreatePlayer_HasCorrectValues()
+  public void CharacterDTOHelper_CreatePlayer_HasCorrectValues()
   {
     // Arrange & Act
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
 
     // Assert
     Assert.NotEqual(Guid.Empty, dto.Id);
@@ -41,10 +42,10 @@ public class CharacterDTOTests
   }
 
   [Fact]
-  public void CharacterDTO_CreateMonster_HasCorrectValues()
+  public void CharacterDTOHelper_CreateMonster_HasCorrectValues()
   {
     // Arrange & Act
-    var dto = CharacterDTO.CreateMonster("TestMonster", 10, 100);
+    var dto = CharacterDTOHelper.CreateMonster("TestMonster", 10, 100);
 
     // Assert
     Assert.NotEqual(Guid.Empty, dto.Id);

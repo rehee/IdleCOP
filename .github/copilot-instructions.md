@@ -20,14 +20,20 @@ IdleCOP is an ARPG idle game built with C# and Bootstrap Blazor. It features equ
 
 - Use **2 spaces** for indentation, not tabs.
 
+### File Organization
+
+- **One class per file**: Each `.cs` file should contain only one class
+- **Enums**: Place all enum types in the `Enums/` directory of the appropriate project
+- **Enum naming**: Use `Enum[Type]` naming (e.g., `EnumMonster`, `EnumPlayer`, `EnumMap`) without suffix like "Profile"
+
 ### Naming Conventions
 
 | Type | Convention | Example |
 |------|------------|---------|
-| Enums | Prefix with `Enum`, default value `NotSpecified = 0` | `EnumQuality`, `EnumSkillType` |
+| Enums | Prefix with `Enum`, default value `NotSpecified = 0` | `EnumQuality`, `EnumMonster`, `EnumMap` |
 | Entities | Suffix with `Entity` | `ActorEntity`, `SkillEntity` |
 | DTOs | Suffix with `DTO` | `CharacterDTO`, `SkillDTO` |
-| Helper/Extension Methods | Suffix with `Helper`, place in `Helpers/` directory | `TickHelper`, `ComponentHelper` |
+| Helper/Extension Methods | Suffix with `Helper`, place in `Helpers/` directory | `TickHelper`, `CombatStatsHelper` |
 | Private Members | camelCase, no `_` prefix | `private readonly IService service;` |
 | Public Members | PascalCase | `public int ProfileKey { get; set; }` |
 | Id Fields | Use `Guid` for all Entity/DTO/Component IDs | `public Guid Id { get; set; }` |
@@ -78,15 +84,45 @@ IdleCOP uses a Component-Profile pattern where:
 - **Profile (IdleProfile)**: Contains logic as a singleton, processes components
 
 ```csharp
-// Profile must implement IWithName interface
+// Non-generic Profile base class
 public abstract class IdleProfile : IWithName
 {
   public abstract int Key { get; }
-  public virtual int? KeyOverride { get; }  // Used when Key is 0
+  public virtual int? KeyOverride { get; }
   public abstract string? Name { get; }
   public abstract string? Description { get; }
-  
-  public abstract void OnTick(IdleComponent component, TickContext context);
+}
+
+// Generic Profile with Enum constraint
+public abstract class IdleProfile<TEnum> : IdleProfile where TEnum : struct, Enum
+{
+  public abstract TEnum ProfileType { get; }
+  public override int Key => Convert.ToInt32(ProfileType);
+}
+```
+
+### Profile Hierarchy Example
+
+```csharp
+// Base Profile (non-generic)
+public abstract class ActorProfile : IdleProfile { ... }
+
+// Generic Actor Profile with Enum constraint  
+public abstract class ActorProfile<TEnum> : ActorProfile where TEnum : struct, Enum
+{
+  public abstract TEnum ProfileType { get; }
+  public override int Key => Convert.ToInt32(ProfileType);
+}
+
+// Base Monster Profile (generic)
+public abstract class MonsterProfile : ActorProfile<EnumMonster> { ... }
+
+// Concrete Monster Profile (one per file)
+public class SkeletonWarriorProfile : MonsterProfile
+{
+  public override EnumMonster ProfileType => EnumMonster.SkeletonWarrior;
+  public override string? Name => "骷髅战士";
+  // ... other properties
 }
 ```
 

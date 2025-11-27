@@ -62,45 +62,4 @@ public class CombatReplayEntity : BaseEntity
   /// 创建时间
   /// </summary>
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-  /// <summary>
-  /// 生成战斗请求
-  /// </summary>
-  public CombatRequest ToCombatRequest()
-  {
-    return new CombatRequest
-    {
-      CreatorCharacterId = CreatorCharacterId,
-      MapId = MapId,
-      MapDifficulty = MapDifficulty,
-      CreatorLevel = CreatorLevel,
-      BattleResult = BattleResult,
-      DurationTicks = DurationTicks,
-      BattleSeed = BattleSeed,
-      ItemSeed = ItemSeed,
-      CreatorFactionCharacters = CreatorFactionCharacters,
-      EnemyFactionCharacters = EnemyFactionCharacters,
-      IsReplay = true
-    };
-  }
-
-  /// <summary>
-  /// 从战斗请求创建回放实体
-  /// </summary>
-  public static CombatReplayEntity FromCombatRequest(CombatRequest request)
-  {
-    return new CombatReplayEntity
-    {
-      CreatorCharacterId = request.CreatorCharacterId,
-      MapId = request.MapId,
-      MapDifficulty = request.MapDifficulty,
-      CreatorLevel = request.CreatorLevel,
-      BattleResult = request.BattleResult,
-      DurationTicks = request.DurationTicks,
-      BattleSeed = request.BattleSeed,
-      ItemSeed = request.ItemSeed,
-      CreatorFactionCharacters = request.CreatorFactionCharacters,
-      EnemyFactionCharacters = request.EnemyFactionCharacters
-    };
-  }
 }

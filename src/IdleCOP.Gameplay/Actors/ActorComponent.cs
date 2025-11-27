@@ -67,22 +67,6 @@ public class ActorComponent : IdleComponent
   }
 
   /// <summary>
-  /// 转换为DTO
-  /// </summary>
-  public CharacterDTO ToDTO()
-  {
-    return new CharacterDTO
-    {
-      Id = Id,
-      Name = Name,
-      Level = Level,
-      ActorType = ActorType,
-      ProfileKey = ProfileKey,
-      CombatStats = CombatStats
-    };
-  }
-
-  /// <summary>
   /// 受到伤害
   /// </summary>
   public void TakeDamage(int damage)

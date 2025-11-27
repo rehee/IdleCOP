@@ -1,6 +1,7 @@
 using Xunit;
 using Idle.Core;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 using IdleCOP.Gameplay.Actors;
 
 namespace IdleCOP.Gameplay.Tests.Actors;
@@ -30,7 +31,7 @@ public class ActorComponentTests
   public void ActorComponent_FromDTO_CreatesCorrectComponent()
   {
     // Arrange
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 5);
 
     // Act
     var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
@@ -45,7 +46,7 @@ public class ActorComponentTests
   }
 
   [Fact]
-  public void ActorComponent_ToDTO_CreatesCorrectDTO()
+  public void ActorComponent_Properties_AreCorrect()
   {
     // Arrange
     var actor = new ActorComponent
@@ -54,25 +55,21 @@ public class ActorComponentTests
       Level = 10,
       ActorType = EnumActorType.Monster,
       ProfileKey = 100,
-      CombatStats = CombatStatsDTO.CreateDefault(10)
+      CombatStats = CombatStatsHelper.CreateDefault(10)
     };
 
-    // Act
-    var dto = actor.ToDTO();
-
     // Assert
-    Assert.Equal(actor.Id, dto.Id);
-    Assert.Equal("TestActor", dto.Name);
-    Assert.Equal(10, dto.Level);
-    Assert.Equal(EnumActorType.Monster, dto.ActorType);
-    Assert.Equal(100, dto.ProfileKey);
+    Assert.Equal("TestActor", actor.Name);
+    Assert.Equal(10, actor.Level);
+    Assert.Equal(EnumActorType.Monster, actor.ActorType);
+    Assert.Equal(100, actor.ProfileKey);
   }
 
   [Fact]
   public void ActorComponent_TakeDamage_ReducesHealth()
   {
     // Arrange
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 1);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
     var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
     var initialHealth = actor.CombatStats.CurrentHealth;
 
@@ -88,7 +85,7 @@ public class ActorComponentTests
   public void ActorComponent_TakeDamage_CannotGoNegative()
   {
     // Arrange
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 1);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
     var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
 
     // Act
@@ -103,7 +100,7 @@ public class ActorComponentTests
   public void ActorComponent_Heal_IncreasesHealth()
   {
     // Arrange
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 1);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
     var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
     actor.TakeDamage(50);
     var healthAfterDamage = actor.CombatStats.CurrentHealth;
@@ -119,7 +116,7 @@ public class ActorComponentTests
   public void ActorComponent_Heal_CannotExceedMaxHealth()
   {
     // Arrange
-    var dto = CharacterDTO.CreatePlayer("TestPlayer", 1);
+    var dto = CharacterDTOHelper.CreatePlayer("TestPlayer", 1);
     var actor = ActorComponent.FromDTO(dto, EnumFaction.Creator);
     var maxHealth = actor.CombatStats.MaxHealth;
 

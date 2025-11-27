@@ -1,6 +1,7 @@
 using Idle.Core;
 using Idle.Core.Combat;
 using Idle.Core.Context;
+using Idle.Core.Helpers;
 using IdleCOP.Gameplay.Maps;
 
 namespace IdleCOP.Gameplay.Combat;
@@ -33,10 +34,10 @@ public class CombatEngine
   /// 回放战斗
   /// </summary>
   /// <param name="replayEntity">回放实体</param>
-  /// <returns>每个 Tick 的上下文状态（用于渲染）</returns>
-  public IEnumerable<TickContext> ReplayBattle(CombatReplayEntity replayEntity)
+  /// <param name="onTick">每个 Tick 的回调（用于渲染）</param>
+  public void ReplayBattle(CombatReplayEntity replayEntity, Action<TickContext>? onTick = null)
   {
-    var request = replayEntity.ToCombatRequest();
+    var request = CombatReplayHelper.ToCombatRequest(replayEntity);
 
     using var context = new TickContext();
     var mapComponent = MapComponent.Initialize(request, context);
@@ -46,8 +47,8 @@ public class CombatEngine
       // 处理地图逻辑
       mapComponent.OnTick(context);
 
-      // 返回当前帧状态（克隆以避免后续修改）
-      yield return CloneContext(context);
+      // 回调渲染
+      onTick?.Invoke(context);
 
       context.CurrentTick++;
     }
@@ -57,7 +58,7 @@ public class CombatEngine
     {
       context.Result = EnumBattleResult.Timeout;
       context.IsBattleOver = true;
-      yield return CloneContext(context);
+      onTick?.Invoke(context);
     }
   }
 
@@ -80,20 +81,5 @@ public class CombatEngine
       context.Result = EnumBattleResult.Timeout;
       context.IsBattleOver = true;
     }
-  }
-
-  /// <summary>
-  /// 克隆上下文（简化版，仅用于回放）
-  /// </summary>
-  private TickContext CloneContext(TickContext source)
-  {
-    // 注意：这是简化实现，实际应该深度克隆所有组件
-    return new TickContext
-    {
-      CurrentTick = source.CurrentTick,
-      MaxTick = source.MaxTick,
-      IsBattleOver = source.IsBattleOver,
-      Result = source.Result
-    };
   }
 }

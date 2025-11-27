@@ -2,6 +2,7 @@ using Xunit;
 using Idle.Core;
 using Idle.Core.Combat;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 using IdleCOP.Gameplay.Combat;
 using IdleCOP.Gameplay.Maps;
 
@@ -17,17 +18,22 @@ public class CombatEngineTests
   {
     // Arrange
     var engine = new CombatEngine();
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 20);
-    player.CombatStats = CombatStatsDTO.CreateDefault(20);
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 20);
+    player.CombatStats = CombatStatsHelper.CreateDefault(20);
     // Boost player stats for quick win
     player.CombatStats.PhysicalDamageMin = 100;
     player.CombatStats.PhysicalDamageMax = 150;
 
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 20,
-      new List<CharacterDTO> { player });
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 20,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     // Act
     var replay = engine.RunBattle(request);
@@ -50,7 +56,7 @@ public class CombatEngineTests
     var request1 = new CombatRequest
     {
       CreatorCharacterId = Guid.NewGuid(),
-      MapId = (int)EnumMapProfile.StarterVillage,
+      MapId = (int)EnumMap.StarterVillage,
       MapDifficulty = 1,
       CreatorLevel = 10,
       BattleSeed = 12345,
@@ -119,7 +125,7 @@ public class CombatEngineTests
   {
     // Arrange
     var engine = new CombatEngine();
-    var player = CharacterDTO.CreatePlayer("WeakPlayer", 1);
+    var player = CharacterDTOHelper.CreatePlayer("WeakPlayer", 1);
     player.CombatStats = new CombatStatsDTO
     {
       MaxHealth = 10,
@@ -129,11 +135,16 @@ public class CombatEngineTests
       AttackSpeed = 0.5f
     };
 
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.SkeletonGraveyard, // Harder map
-      5, 1,
-      new List<CharacterDTO> { player });
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.SkeletonGraveyard, // Harder map
+      MapDifficulty = 5,
+      CreatorLevel = 1,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     // Act
     var replay = engine.RunBattle(request);
@@ -152,7 +163,7 @@ public class CombatEngineTests
     var request = new CombatRequest
     {
       CreatorCharacterId = Guid.NewGuid(),
-      MapId = (int)EnumMapProfile.StarterVillage,
+      MapId = (int)EnumMap.StarterVillage,
       MapDifficulty = 1,
       CreatorLevel = 50,
       BattleSeed = 54321,
@@ -187,29 +198,34 @@ public class CombatEngineTests
   }
 
   [Fact]
-  public void CombatEngine_ReplayBattle_ReturnsTicks()
+  public void CombatEngine_ReplayBattle_CallsCallback()
   {
     // Arrange
     var engine = new CombatEngine();
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 20);
-    player.CombatStats = CombatStatsDTO.CreateDefault(20);
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 20);
+    player.CombatStats = CombatStatsHelper.CreateDefault(20);
     player.CombatStats.PhysicalDamageMin = 100;
     player.CombatStats.PhysicalDamageMax = 150;
 
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 20,
-      new List<CharacterDTO> { player });
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 20,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     var replay = engine.RunBattle(request);
 
     // Act
-    var ticks = engine.ReplayBattle(replay).ToList();
+    var callCount = 0;
+    engine.ReplayBattle(replay, ctx => callCount++);
 
     // Assert
-    Assert.NotEmpty(ticks);
-    Assert.True(ticks.Count > 0);
+    Assert.True(callCount > 0);
   }
 
   [Fact]
@@ -217,24 +233,30 @@ public class CombatEngineTests
   {
     // Arrange
     var engine = new CombatEngine();
-    var player = CharacterDTO.CreatePlayer("TestPlayer", 20);
-    player.CombatStats = CombatStatsDTO.CreateDefault(20);
+    var player = CharacterDTOHelper.CreatePlayer("TestPlayer", 20);
+    player.CombatStats = CombatStatsHelper.CreateDefault(20);
     player.CombatStats.PhysicalDamageMin = 100;
     player.CombatStats.PhysicalDamageMax = 150;
 
-    var request = CombatRequest.CreateNew(
-      Guid.NewGuid(),
-      (int)EnumMapProfile.StarterVillage,
-      1, 20,
-      new List<CharacterDTO> { player });
+    var request = new CombatRequest
+    {
+      CreatorCharacterId = Guid.NewGuid(),
+      MapId = (int)EnumMap.StarterVillage,
+      MapDifficulty = 1,
+      CreatorLevel = 20,
+      BattleSeed = 12345,
+      ItemSeed = 67890,
+      CreatorFactionCharacters = new List<CharacterDTO> { player }
+    };
 
     var originalReplay = engine.RunBattle(request);
 
     // Act
-    var ticks = engine.ReplayBattle(originalReplay).ToList();
-    var lastTick = ticks.Last();
+    EnumBattleResult? lastResult = null;
+    engine.ReplayBattle(originalReplay, ctx => lastResult = ctx.Result);
 
     // Assert
-    Assert.Equal(originalReplay.BattleResult, lastTick.Result);
+    Assert.NotNull(lastResult);
+    Assert.Equal(originalReplay.BattleResult, lastResult.Value);
   }
 }

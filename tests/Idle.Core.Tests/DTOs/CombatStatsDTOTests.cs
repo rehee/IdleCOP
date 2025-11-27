@@ -1,5 +1,6 @@
 using Xunit;
 using Idle.Core.DTOs;
+using Idle.Core.Helpers;
 
 namespace Idle.Core.Tests.DTOs;
 
@@ -22,10 +23,10 @@ public class CombatStatsDTOTests
   }
 
   [Fact]
-  public void CombatStatsDTO_CreateDefault_Level1_HasCorrectValues()
+  public void CombatStatsHelper_CreateDefault_Level1_HasCorrectValues()
   {
     // Arrange & Act
-    var stats = CombatStatsDTO.CreateDefault(1);
+    var stats = CombatStatsHelper.CreateDefault(1);
 
     // Assert
     Assert.Equal(110, stats.MaxHealth); // 100 + 1 * 10
@@ -42,10 +43,10 @@ public class CombatStatsDTOTests
   }
 
   [Fact]
-  public void CombatStatsDTO_CreateDefault_Level10_ScalesCorrectly()
+  public void CombatStatsHelper_CreateDefault_Level10_ScalesCorrectly()
   {
     // Arrange & Act
-    var stats = CombatStatsDTO.CreateDefault(10);
+    var stats = CombatStatsHelper.CreateDefault(10);
 
     // Assert
     Assert.Equal(200, stats.MaxHealth); // 100 + 10 * 10

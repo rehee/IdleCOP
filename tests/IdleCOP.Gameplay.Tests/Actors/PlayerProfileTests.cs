@@ -1,6 +1,7 @@
 using Xunit;
 using Idle.Core.DTOs;
 using IdleCOP.Gameplay.Actors;
+using IdleCOP.Gameplay.Actors.Players;
 
 namespace IdleCOP.Gameplay.Tests.Actors;
 
@@ -16,7 +17,7 @@ public class PlayerProfileTests
     var profile = PlayerProfiles.BasicPlayer;
 
     // Assert
-    Assert.Equal((int)EnumPlayerProfile.BasicPlayer, profile.Key);
+    Assert.Equal((int)EnumPlayer.BasicPlayer, profile.Key);
     Assert.Equal(1, profile.Key);
   }
 
