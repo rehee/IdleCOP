@@ -116,7 +116,9 @@ Closes #123
 
 - 遵循 [Microsoft C# 编码约定](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 - 使用 `PascalCase` 命名公共成员
-- 使用 `camelCase` 命名私有成员（带 `_` 前缀）
+- 使用 `camelCase` 命名私有成员（不带 `_` 前缀）
+- 枚举类必须以 `Enum` 开头，默认值必须为 `NotSpecified`
+- 代码缩进使用 2 个空格
 - 保持方法简短，单一职责
 
 ### 示例
@@ -124,20 +126,31 @@ Closes #123
 ```csharp
 public class EquipmentService
 {
-    private readonly ILootGenerator _lootGenerator;
-    private readonly IDropTable _dropTable;
+  private readonly ILootGenerator lootGenerator;
+  private readonly IDropTable dropTable;
 
-    public EquipmentService(ILootGenerator lootGenerator, IDropTable dropTable)
-    {
-        _lootGenerator = lootGenerator;
-        _dropTable = dropTable;
-    }
+  public EquipmentService(ILootGenerator lootGenerator, IDropTable dropTable)
+  {
+    this.lootGenerator = lootGenerator;
+    this.dropTable = dropTable;
+  }
 
-    public Equipment GenerateEquipment(LootContext context)
-    {
-        var possibleDrops = _dropTable.GetPossibleDrops(context.ZoneId, context.Level);
-        return _lootGenerator.GenerateEquipment(context);
-    }
+  public Equipment GenerateEquipment(LootContext context)
+  {
+    var possibleDrops = dropTable.GetPossibleDrops(context.ZoneId, context.Level);
+    return lootGenerator.GenerateEquipment(context);
+  }
+}
+
+// 枚举命名示例
+public enum EnumQuality
+{
+  NotSpecified = 0,
+  Normal,
+  Magic,
+  Rare,
+  Legendary,
+  Unique
 }
 ```
 

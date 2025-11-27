@@ -28,24 +28,38 @@
 │  Combat | Skills | Equipment | Maps | Instructions | AI     │
 ├─────────────────────────────────────────────────────────────┤
 │                      核心层 (Core)                            │
-│     Actor System | Event System | State Machine             │
+│   Component System | Event System | Behavior Strategy       │
+├─────────────────────────────────────────────────────────────┤
+│                      工具层 (Utility)                         │
+│       Common Utils | Extensions | Helpers                   │
 ├─────────────────────────────────────────────────────────────┤
 │                      数据层 (Data)                            │
 │   Repository | Persistence | Serialization | Config         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
+> **设计原则：**
+> - 玩法逻辑与 COP 实现解耦，核心逻辑可复用于其他项目
+> - 服务通过依赖注入方式根据表现平台注入至游戏逻辑
+> - 使用可配置的策略列表（参考荣耀殿堂）替代状态机
+
 ### 项目模块结构
 
 ```
 src/
-├── IdleCOP.Core/           # 核心基础库
-│   ├── Actors/             # 演员系统基类
-│   ├── Events/             # 事件系统
-│   ├── States/             # 状态机
-│   └── Utils/              # 工具类
+├── Idle.Utility/           # 通用工具库（独立，无游戏依赖）
+│   ├── Extensions/         # 扩展方法
+│   ├── Helpers/            # 帮助类
+│   └── Common/             # 通用工具
 │
-├── IdleCOP.Gameplay/       # 游戏逻辑
+├── Idle.Core/              # 核心基础库（通用玩法框架）
+│   ├── Components/         # 组件系统基类
+│   ├── Profiles/           # Profile 单例逻辑
+│   ├── Events/             # 事件系统
+│   ├── Behaviors/          # 可配置行为策略
+│   └── DI/                 # 依赖注入抽象
+│
+├── IdleCOP.Gameplay/       # COP 游戏玩法实现
 │   ├── Combat/             # 战斗系统
 │   ├── Skills/             # 技能系统
 │   ├── Equipment/          # 装备系统
@@ -54,7 +68,7 @@ src/
 │   └── Instructions/       # 指令系统
 │
 ├── IdleCOP.AI/             # AI与行为
-│   ├── BehaviorTree/       # 行为树
+│   ├── Strategies/         # 可配置策略列表
 │   ├── Scripting/          # 脚本执行
 │   └── Pathfinding/        # 寻路
 │
@@ -79,35 +93,70 @@ src/
 
 ## 模块设计
 
-### 1. 核心层 (IdleCOP.Core)
+### 1. 核心层 (Idle.Core)
 
-#### 1.1 演员系统 (Actor System)
+#### 1.1 组件系统 (Component System)
 
-所有游戏实体（玩家、NPC、怪物、投射物等）均继承自 `Actor` 基类。
+使用组件化设计。所有游戏实例化对象都是 `IdleComponent`，负责保存数据和触发事件。
+组件的逻辑在 `IdleProfile` 中，`IdleProfile` 是单例模式。
+
+每个 `IdleComponent` 对应一个 `IdleProfile`，每个 `IdleProfile` 都有唯一的 Key (int)。
 
 ```csharp
-public abstract class Actor
+/// <summary>
+/// 游戏组件基类 - 保存数据，触发事件
+/// </summary>
+public abstract class IdleComponent
 {
-    public string Id { get; set; }
-    public ActorType Type { get; set; }
-    public Stats Stats { get; set; }
-    public Inventory Inventory { get; set; }
-    public List<Instruction> Instructions { get; set; }
-    public AIState AIState { get; set; }
-    
-    public virtual void OnTick(GameTime gameTime) { }
-    public virtual void OnEvent(GameEvent gameEvent) { }
+  public string Id { get; set; }
+  public int ProfileKey { get; set; }
+  public Dictionary<string, object> Data { get; set; }
+  public List<BehaviorStrategy> Behaviors { get; set; }
+  
+  public virtual void OnTick(GameTime gameTime) { }
+  public virtual void OnEvent(GameEvent gameEvent) { }
 }
 
-public enum ActorType
+/// <summary>
+/// Profile 基类 - 单例，包含组件逻辑
+/// </summary>
+public abstract class IdleProfile
 {
-    Player,
-    NPC,
-    Monster,
-    Projectile,
-    Environment
+  public abstract int Key { get; }
+  public abstract void Execute(IdleComponent component, GameContext context);
+}
+
+// Profile Key 枚举示例
+public enum EnumProfileKey
+{
+  NotSpecified = 0,
+  Player = 1,
+  Monster = 2,
+  NPC = 3,
+  Projectile = 4,
+  Environment = 5
+}
+
+// 技能 Profile Key
+public enum EnumSkill
+{
+  NotSpecified = 0,
+  BasicAttack = 1,
+  Fireball = 2,
+  // ... 更多技能
+}
+
+// 物品 Profile Key
+public enum EnumItem
+{
+  NotSpecified = 0,
+  Sword = 1,
+  Shield = 2,
+  // ... 更多物品
 }
 ```
+
+> **注意：** 如果一个 Profile 使用 `NotSpecified` 作为 Key，则需要额外设置一个不与现有 Enum 冲突的 Key。
 
 #### 1.2 事件系统 (Event System)
 
@@ -116,29 +165,55 @@ public enum ActorType
 ```csharp
 public interface IEventBus
 {
-    void Publish<T>(T gameEvent) where T : GameEvent;
-    void Subscribe<T>(Action<T> handler) where T : GameEvent;
-    void Unsubscribe<T>(Action<T> handler) where T : GameEvent;
+  void Publish<T>(T gameEvent) where T : GameEvent;
+  void Subscribe<T>(Action<T> handler) where T : GameEvent;
+  void Unsubscribe<T>(Action<T> handler) where T : GameEvent;
 }
 
 public abstract class GameEvent
 {
-    public string EventId { get; set; }
-    public DateTime Timestamp { get; set; }
-    public Actor Source { get; set; }
+  public string EventId { get; set; }
+  public DateTime Timestamp { get; set; }
+  public IdleComponent Source { get; set; }
 }
 ```
 
-#### 1.3 状态机 (State Machine)
+#### 1.3 可配置行为策略 (Behavior Strategy)
 
-用于管理演员行为状态的有限状态机。
+使用可配置的行为列表替代状态机，参考荣耀殿堂的策略设计。
 
 ```csharp
-public interface IStateMachine<TState> where TState : Enum
+/// <summary>
+/// 行为策略基类
+/// </summary>
+public abstract class BehaviorStrategy
 {
-    TState CurrentState { get; }
-    void TransitionTo(TState newState);
-    void Update(GameTime gameTime);
+  public int Priority { get; set; }
+  public bool IsEnabled { get; set; }
+  public BehaviorCondition Condition { get; set; }
+  
+  public abstract bool CanExecute(IdleComponent component, GameContext context);
+  public abstract void Execute(IdleComponent component, GameContext context);
+}
+
+/// <summary>
+/// 策略列表执行器
+/// </summary>
+public class StrategyExecutor
+{
+  private List<BehaviorStrategy> strategies;
+  
+  public void Execute(IdleComponent component, GameContext context)
+  {
+    var sortedStrategies = strategies
+      .Where(s => s.IsEnabled && s.CanExecute(component, context))
+      .OrderByDescending(s => s.Priority);
+    
+    foreach (var strategy in sortedStrategies)
+    {
+      strategy.Execute(component, context);
+    }
+  }
 }
 ```
 
@@ -151,31 +226,69 @@ public interface IStateMachine<TState> where TState : Enum
 ```csharp
 public class Equipment
 {
-    public string Id { get; set; }
-    public EquipmentBaseType BaseType { get; set; }
-    public Quality Quality { get; set; }
-    public List<Affix> Affixes { get; set; }
-    public int Level { get; set; }
-    public int RequiredLevel { get; set; }
-    
-    public Stats CalculateTotalStats() { }
+  public string Id { get; set; }
+  public EquipmentBaseType BaseType { get; set; }
+  public EnumQuality Quality { get; set; }
+  public List<Affix> Affixes { get; set; }
+  public int Level { get; set; }
+  public int RequiredLevel { get; set; }
+  
+  public Stats CalculateTotalStats() { }
 }
 
-public enum Quality
+/// <summary>
+/// 装备品质枚举
+/// </summary>
+public enum EnumQuality
 {
-    Normal,     // 白
-    Magic,      // 蓝
-    Rare,       // 紫
-    Legendary   // 橙
+  NotSpecified = 0,
+  Normal,     // 白
+  Magic,      // 蓝
+  Rare,       // 紫
+  Legendary,  // 橙
+  Unique      // 红（唯一）
 }
 
+/// <summary>
+/// 词缀类型枚举
+/// </summary>
+public enum EnumAffixType
+{
+  NotSpecified = 0,
+  Prefix,         // 前缀
+  Suffix,         // 后缀
+  Base,           // 基底词缀
+  Implicit,       // 物品本身的基础词缀
+  Legendary,      // 传奇词缀
+  Corrupted,      // 腐化词缀
+  Extra           // 额外词缀
+}
+
+/// <summary>
+/// 词缀分组枚举
+/// </summary>
+public enum EnumAffixGroup
+{
+  NotSpecified = 0,
+  Offensive,      // 攻击组
+  Defensive,      // 防御组
+  Utility,        // 功能组
+  Elemental,      // 元素组
+  Resource        // 资源组
+}
+
+/// <summary>
+/// 词缀类 - 支持分级(T1最高)和物品等级要求
+/// </summary>
 public class Affix
 {
-    public string Id { get; set; }
-    public AffixType Type { get; set; }  // Prefix / Suffix
-    public string Name { get; set; }
-    public List<StatModifier> Modifiers { get; set; }
-    public int Tier { get; set; }
+  public string Id { get; set; }
+  public EnumAffixType Type { get; set; }
+  public EnumAffixGroup Group { get; set; }
+  public string Name { get; set; }
+  public List<StatModifier> Modifiers { get; set; }
+  public int Tier { get; set; }              // T级别，T1最高
+  public int RequiredItemLevel { get; set; } // 需要的物品等级才能出现
 }
 ```
 
@@ -184,13 +297,13 @@ public class Affix
 ```csharp
 public interface ILootGenerator
 {
-    Equipment GenerateEquipment(LootContext context);
-    List<Equipment> GenerateLootDrop(Monster monster, Player player);
+  Equipment GenerateEquipment(LootContext context);
+  List<Equipment> GenerateLootDrop(IdleComponent monster, IdleComponent player);
 }
 
 public interface IDropTable
 {
-    List<DropEntry> GetPossibleDrops(string zoneId, int monsterLevel);
+  List<DropEntry> GetPossibleDrops(string zoneId, int monsterLevel);
 }
 ```
 
@@ -199,64 +312,121 @@ public interface IDropTable
 ```csharp
 public abstract class Skill
 {
-    public string Id { get; set; }
-    public SkillType Type { get; set; }
-    public SkillParams Params { get; set; }
-    public List<SupportSkill> Supports { get; set; }
-    
-    public abstract void Execute(Actor caster, SkillContext context);
+  public string Id { get; set; }
+  public EnumSkillType Type { get; set; }
+  public SkillParams Params { get; set; }
+  public List<SupportSkill> Supports { get; set; }
+  
+  public abstract void Execute(IdleComponent caster, SkillContext context);
 }
 
-public enum SkillType
+public enum EnumSkillType
 {
-    Active,     // 主动技能
-    Support,    // 辅助技能
-    Trigger     // 触发技能
+  NotSpecified = 0,
+  Active,     // 主动技能
+  Support,    // 辅助技能
+  Trigger     // 触发技能
+}
+
+/// <summary>
+/// 资源类型枚举 - 不同职业使用不同资源
+/// </summary>
+public enum EnumResourceType
+{
+  NotSpecified = 0,
+  Arcane,     // 奥术（法师）
+  Energy,     // 能量（冒险者）
+  Chi,        // 内力（侠客）
+  Rage,       // 怒气（狂战士）
+  Spirit,     // 灵力（召唤师）
+  Focus       // 专注（刺客）
+}
+
+/// <summary>
+/// 资源配置 - 支持主资源和副资源
+/// </summary>
+public class ResourceConfig
+{
+  public EnumResourceType PrimaryResource { get; set; }   // 主资源
+  public EnumResourceType SecondaryResource { get; set; } // 副资源
+  public float PrimaryMax { get; set; }
+  public float SecondaryMax { get; set; }
+  public float PrimaryRegenRate { get; set; }
+  public float SecondaryRegenRate { get; set; }
+  public bool ConvertOnFull { get; set; }  // 主资源满时是否转换为副资源
+  public float ConversionRate { get; set; } // 转换比例
+}
+
+/// <summary>
+/// 技能资源消耗配置
+/// </summary>
+public class SkillResourceCost
+{
+  public EnumResourceType ResourceType { get; set; }
+  public float Cost { get; set; }
+  public bool UsePrimary { get; set; }  // true=主资源, false=副资源
 }
 
 public class ActiveSkill : Skill
 {
-    public float Cooldown { get; set; }
-    public float ManaCost { get; set; }
-    public float CastTime { get; set; }
+  public float Cooldown { get; set; }
+  public SkillResourceCost ResourceCost { get; set; }  // 资源消耗（替代 ManaCost）
+  public float CastTime { get; set; }
+  public bool GeneratesResource { get; set; }  // 是否产生资源（如格斗家击中生成资源）
+  public float ResourceGenerated { get; set; } // 产生的资源量
 }
 
 public class SupportSkill : Skill
 {
-    public List<SkillTag> SupportedTags { get; set; }
-    public List<SkillModifier> Modifiers { get; set; }
+  public List<SkillTag> SupportedTags { get; set; }
+  public List<SkillModifier> Modifiers { get; set; }
 }
 
 public class TriggerSkill : Skill
 {
-    public TriggerCondition Condition { get; set; }
-    public float TriggerChance { get; set; }
-    public float InternalCooldown { get; set; }
+  public TriggerCondition Condition { get; set; }
+  public float TriggerChance { get; set; }
+  public float InternalCooldown { get; set; }
 }
 ```
+
+> **资源系统示例 - 格斗家：**
+> - 施展技能击中对手或造成伤害后增加主资源
+> - 主资源满后转换为一个副资源
+> - 副资源用于释放绝技（类似主流格斗游戏）
 
 #### 2.3 地图系统
 
 ```csharp
 public class GameMap
 {
-    public string Seed { get; set; }
-    public List<Zone> Zones { get; set; }
-    public List<SpawnPoint> Spawns { get; set; }
-    public MapLayout Layout { get; set; }
+  public string Seed { get; set; }
+  public List<Zone> Zones { get; set; }
+  public List<SpawnPoint> Spawns { get; set; }
+  public MapLayout Layout { get; set; }
 }
 
 public interface IMapGenerator
 {
-    GameMap Generate(string seed, MapConfig config);
+  GameMap Generate(string seed, MapConfig config);
 }
 
 public class Zone
 {
-    public string Id { get; set; }
-    public ZoneType Type { get; set; }
-    public List<Tile> Tiles { get; set; }
-    public List<Actor> Actors { get; set; }
+  public string Id { get; set; }
+  public EnumZoneType Type { get; set; }
+  public List<Tile> Tiles { get; set; }
+  public List<IdleComponent> Components { get; set; }
+}
+
+public enum EnumZoneType
+{
+  NotSpecified = 0,
+  Entrance,
+  Combat,
+  Boss,
+  Safe,
+  Treasure
 }
 ```
 
@@ -265,18 +435,26 @@ public class Zone
 ```csharp
 public class Currency
 {
-    public string Id { get; set; }
-    public CurrencyType Type { get; set; }
-    public int Amount { get; set; }
-    public bool IsShared { get; set; }  // 账号全局共享
+  public string Id { get; set; }
+  public EnumCurrencyType Type { get; set; }
+  public int Amount { get; set; }
+  public bool IsShared { get; set; }  // 账号全局共享
+}
+
+public enum EnumCurrencyType
+{
+  NotSpecified = 0,
+  Crafting,
+  Trading,
+  Special
 }
 
 public interface ICurrencyManager
 {
-    void Add(string currencyId, int amount);
-    bool TrySpend(string currencyId, int amount);
-    int GetBalance(string currencyId);
-    List<Currency> GetAllCurrencies();
+  void Add(string currencyId, int amount);
+  bool TrySpend(string currencyId, int amount);
+  int GetBalance(string currencyId);
+  List<Currency> GetAllCurrencies();
 }
 ```
 
@@ -285,17 +463,17 @@ public interface ICurrencyManager
 ```csharp
 public class Instruction
 {
-    public string Id { get; set; }
-    public InstructionCondition Condition { get; set; }
-    public InstructionAction Action { get; set; }
-    public List<Instruction> Children { get; set; }
-    public int Priority { get; set; }
+  public string Id { get; set; }
+  public InstructionCondition Condition { get; set; }
+  public InstructionAction Action { get; set; }
+  public List<Instruction> Children { get; set; }
+  public int Priority { get; set; }
 }
 
 public interface IInstructionExecutor
 {
-    void Execute(Actor actor, List<Instruction> instructions);
-    bool EvaluateCondition(Actor actor, InstructionCondition condition);
+  void Execute(IdleComponent component, List<Instruction> instructions);
+  bool EvaluateCondition(IdleComponent component, InstructionCondition condition);
 }
 ```
 
@@ -303,25 +481,41 @@ public interface IInstructionExecutor
 
 ### 3. AI层 (IdleCOP.AI)
 
-#### 3.1 行为树
+#### 3.1 可配置策略列表
+
+使用可配置的策略列表替代传统行为树，支持更灵活的行为定制。
 
 ```csharp
-public interface IBehaviorNode
+public interface IStrategy
 {
-    BehaviorStatus Execute(BehaviorContext context);
+  int Priority { get; }
+  bool CanExecute(StrategyContext context);
+  void Execute(StrategyContext context);
 }
 
-public enum BehaviorStatus
+public enum EnumStrategyStatus
 {
-    Success,
-    Failure,
-    Running
+  NotSpecified = 0,
+  Success,
+  Failure,
+  Running
 }
 
-public class BehaviorTree
+public class StrategyList
 {
-    public IBehaviorNode Root { get; set; }
-    public void Tick(BehaviorContext context) { }
+  public List<IStrategy> Strategies { get; set; }
+  
+  public void Tick(StrategyContext context)
+  {
+    foreach (var strategy in Strategies.OrderByDescending(s => s.Priority))
+    {
+      if (strategy.CanExecute(context))
+      {
+        strategy.Execute(context);
+        break;  // 执行最高优先级匹配策略后停止
+      }
+    }
+  }
 }
 ```
 
@@ -334,15 +528,15 @@ public class BehaviorTree
 ```csharp
 public interface IRepository<T> where T : class
 {
-    Task<T> GetByIdAsync(string id);
-    Task<IEnumerable<T>> GetAllAsync();
-    Task SaveAsync(T entity);
-    Task DeleteAsync(string id);
+  Task<T> GetByIdAsync(string id);
+  Task<IEnumerable<T>> GetAllAsync();
+  Task SaveAsync(T entity);
+  Task DeleteAsync(string id);
 }
 
 public interface IAccountRepository : IRepository<Account>
 {
-    Task<Account> GetByUsernameAsync(string username);
+  Task<Account> GetByUsernameAsync(string username);
 }
 ```
 
@@ -354,9 +548,9 @@ public interface IAccountRepository : IRepository<Account>
 ```csharp
 public interface ISyncService
 {
-    Task SyncToServerAsync(SyncData data);
-    Task<SyncData> FetchFromServerAsync(string accountId);
-    Task<bool> ResolveConflictsAsync(SyncConflict conflict);
+  Task SyncToServerAsync(SyncData data);
+  Task<SyncData> FetchFromServerAsync(string accountId);
+  Task<bool> ResolveConflictsAsync(SyncConflict conflict);
 }
 ```
 
@@ -405,9 +599,9 @@ public interface ISyncService
 ```csharp
 public interface IGamePlugin
 {
-    string PluginId { get; }
-    void OnLoad(IGameContext context);
-    void OnUnload();
+  string PluginId { get; }
+  void OnLoad(IGameContext context);
+  void OnUnload();
 }
 ```
 
