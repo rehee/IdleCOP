@@ -4,13 +4,37 @@
 
 ## 目录
 
-1. [代码规范与上下文](#代码规范与上下文)
-2. [项目结构](#项目结构)
-3. [核心概念](#核心概念)
-4. [战斗流程](#战斗流程)
-5. [数据表结构](#数据表结构)
-6. [接口定义](#接口定义)
-7. [API 格式](#api-格式)
+1. [术语表](#术语表)
+2. [代码规范与上下文](#代码规范与上下文)
+3. [项目结构](#项目结构)
+4. [核心概念](#核心概念)
+5. [战斗流程](#战斗流程)
+6. [数据表结构](#数据表结构)
+7. [接口定义](#接口定义)
+8. [API 格式](#api-格式)
+
+---
+
+## 术语表
+
+| 术语 | 英文 | 说明 |
+|------|------|------|
+| 组件 | Component | 游戏中实例化的数据对象，保存数据和状态 |
+| Profile | Profile | 组件对应的逻辑处理单例，包含业务逻辑 |
+| 实体 | Entity | 持久化存储的数据结构 |
+| DTO | Data Transfer Object | 数据传输对象，用于组件间/系统间数据传递 |
+| 帮助类 | Helper | 工具方法和扩展方法 |
+| 仓储 | Repository | Entity 的增删改查抽象层 |
+| 上下文 | Context | 运行时环境和状态容器 |
+| Tick | Tick | 游戏逻辑的最小时间单位（默认30帧/秒） |
+| 阵营 | Faction | 战斗中的对立方（创造者 vs 敌人） |
+| 战斗种子 | BattleSeed | 确定性战斗的输入参数，相同种子产生相同结果 |
+| 词缀 | Affix | 装备上的属性修饰 |
+| 品质 | Quality | 装备稀有度（白/蓝/紫/橙/红） |
+| 策略 | Strategy | 可配置的行为逻辑 |
+| 投射物 | Projectile | 飞行物体（箭矢、法术弹等） |
+| 持续性效果 | Duration Effect | 有持续时间的状态效果（眩晕、中毒等） |
+| 资源 | Resource | 技能消耗的能量（奥术、怒气、内力等） |
 
 ---
 
@@ -38,6 +62,14 @@
 |---------------|-----------------|
 | `OnTick(TickContext context)` | `OnTick(IdleComponent component, TickContext context)` |
 
+### Profile 实例化规范
+
+- Profile 以 Enum 值作为 Key 实例化
+- Profile 数据直接写在 `XXXProfile.cs` 文件中
+- 支持由 JSON 配置文件覆盖已有的 Profile 数据
+- 每个 Profile/组件尽量只完成单一功能
+- 需要多个功能的复杂功能应组合使用多个 Profile
+
 ### 数据持久化规范
 
 - 持久化数据保存为 `XXXEntity`
@@ -57,6 +89,7 @@ src/
 │   ├── Components/         # 组件系统基类
 │   ├── Profiles/           # Profile 单例逻辑
 │   ├── Context/            # TickContext 战斗上下文
+│   ├── Repository/         # IRepository/IContext 数据访问抽象
 │   └── DI/                 # 依赖注入抽象
 │
 ├── IdleCOP.Gameplay/       # COP 游戏玩法实现
@@ -416,12 +449,30 @@ public interface IMapGenerator
 ### IRepository&lt;T&gt;
 
 ```csharp
+// Entity 的增删改查抽象，根据平台实现（数据库、IndexedDB 等）
 public interface IRepository<T> where T : class
 {
-  Task<T> GetByIdAsync(Guid id);
+  Task<T?> GetByIdAsync(Guid id);
   Task<IEnumerable<T>> GetAllAsync();
-  Task SaveAsync(T entity);
+  Task<IEnumerable<T>> QueryAsync(Expression<Func<T, bool>> predicate);
+  Task AddAsync(T entity);
+  Task UpdateAsync(T entity);
   Task DeleteAsync(Guid id);
+  Task SaveChangesAsync();
+}
+```
+
+### IDataContext
+
+```csharp
+// 数据访问上下文抽象，管理多个 Repository
+public interface IDataContext : IDisposable
+{
+  IRepository<ActorEntity> Actors { get; }
+  IRepository<SkillEntity> Skills { get; }
+  IRepository<EquipmentEntity> Equipment { get; }
+  IRepository<StrategyEntity> Strategies { get; }
+  Task SaveChangesAsync();
 }
 ```
 
