@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\IdleCOP.Gameplay\IdleCOP.Gameplay.csproj" />
-    <ProjectReference Include="..\..\IdleCOP.AI\IdleCOP.AI.csproj" />
-    <ProjectReference Include="..\..\IdleCOP.Data\IdleCOP.Data.csproj" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdleCOP.Gameplay\IdleCOP.Gameplay.csproj" />
+    <ProjectReference Include="..\..\IdleCOP.AI\IdleCOP.AI.csproj" />
+    <ProjectReference Include="..\..\IdleCOP.Data\IdleCOP.Data.csproj" />
+  </ItemGroup>
 
 </Project>
