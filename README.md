@@ -32,22 +32,63 @@ IdleCOP/
 ├── README.md                 # 项目说明
 ├── DESIGN.md                 # 主设计文档
 ├── CONTRIBUTING.md           # 贡献规范
+├── IdleCOP.sln               # 解决方案文件
+├── Directory.Build.props     # 共享项目属性
+├── setup.sh                  # Linux/macOS 设置脚本
+├── setup.ps1                 # Windows 设置脚本
+├── .editorconfig             # 代码风格配置
+├── .gitignore                # Git 忽略规则
+│
+├── Idle.Utility/             # 通用工具库（独立，无游戏依赖）
+│   └── Helpers/              # 帮助类（XXXHelper）
+│
+├── Idle.Core/                # 核心基础库（通用玩法框架）
+│   ├── Components/           # 组件系统基类
+│   ├── Profiles/             # Profile 单例逻辑
+│   ├── Context/              # TickContext 战斗上下文
+│   ├── Repository/           # IRepository/IContext 数据访问抽象
+│   └── DI/                   # 依赖注入抽象
+│
+├── IdleCOP.Gameplay/         # COP 游戏玩法实现
+│   ├── Combat/               # 战斗系统
+│   ├── Skills/               # 技能系统
+│   ├── Equipment/            # 装备系统
+│   ├── Maps/                 # 地图系统
+│   └── Instructions/         # 指令系统
+│
+├── IdleCOP.AI/               # AI与行为
+│   └── Strategies/           # 可配置策略列表
+│
+├── IdleCOP.Data/             # 数据管理
+│   ├── Entities/             # 持久化实体
+│   ├── DTOs/                 # 数据传输对象
+│   └── Configs/              # 配置文件
+│
+├── IdleCOP.Client.Web/       # Blazor Web 客户端
+│
+├── configs/                  # 游戏配置文件
+│   ├── equipment/            # 装备配置
+│   ├── skills/               # 技能配置
+│   ├── effects/              # 效果配置
+│   ├── strategies/           # 策略配置
+│   └── maps/                 # 地图配置
+│
 ├── docs-gameplay.md          # 玩法细节分解
 ├── docs-data-models.md       # 数据模型示例
 ├── docs-ai-instructions.md   # 指令/行为脚本详细说明
 ├── docs-roadmap.md           # 功能迭代与时间线
+│
 └── .github/
     └── ISSUE_TEMPLATE.md     # 提案/任务模板
 ```
 
 ## 快速开始
 
-> 项目处于设计阶段，开发环境搭建指南将在后续更新。
-
 ### 前置要求
 
 - .NET 8.0 SDK 或更高版本
 - Visual Studio 2022 或 VS Code
+- Git
 
 ### 安装与运行
 
@@ -56,7 +97,21 @@ IdleCOP/
 git clone https://github.com/rehee/IdleCOP.git
 cd IdleCOP
 
-# 后续开发中...
+# Linux/macOS: 运行设置脚本
+chmod +x setup.sh
+./setup.sh
+
+# Windows (PowerShell): 运行设置脚本
+./setup.ps1
+
+# 恢复依赖
+dotnet restore
+
+# 构建项目
+dotnet build
+
+# 运行测试
+dotnet test
 ```
 
 ## 文档导航

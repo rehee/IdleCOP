@@ -1,0 +1,60 @@
+# EditorConfig - https://editorconfig.org
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# files
+[*.cs]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Code style
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# Naming conventions
+# Private fields - camelCase without underscore prefix
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = warning
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case_style
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# Public members - PascalCase
+dotnet_naming_rule.public_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.public_members_should_be_pascal_case.symbols = public_members
+dotnet_naming_rule.public_members_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.public_members.applicable_kinds = property, method, field, event, delegate
+dotnet_naming_symbols.public_members.applicable_accessibilities = public, internal, protected, protected_internal
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# XML documentation
+[*.{xml,csproj,sln,props,targets}]
+indent_style = space
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
