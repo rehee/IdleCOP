@@ -29,20 +29,32 @@ IdleCOP 是一款高自由度装备、技能与指令体系的ARPG放置类游�
 
 ```
 IdleCOP/
-├── README.md                 # 项目说明
-├── DESIGN.md                 # 主设计文档
-├── CONTRIBUTING.md           # 贡献规范
-├── docs-gameplay.md          # 玩法细节分解
-├── docs-data-models.md       # 数据模型示例
-├── docs-ai-instructions.md   # 指令/行为脚本详细说明
-├── docs-roadmap.md           # 功能迭代与时间线
+├── README.md                    # 项目说明
+├── DESIGN.md                    # 主设计文档
+├── CONTRIBUTING.md              # 贡献规范
+├── IdleCOP.sln                  # 解决方案文件
+├── Directory.Build.props        # 共享项目配置
+├── init-project.sh              # 初始化脚本 (Linux/macOS)
+├── init-project.ps1             # 初始化脚本 (Windows)
+├── docs-*.md                    # 设计文档
+├── src/
+│   ├── Idle.Utility/            # 通用工具库
+│   ├── Idle.Core/               # 核心基础库
+│   ├── IdleCOP.Gameplay/        # 游戏玩法实现
+│   ├── IdleCOP.AI/              # AI与行为系统
+│   ├── IdleCOP.Data/            # 数据管理
+│   └── IdleCOP.Console/         # 控制台实验程序
+├── tests/
+│   ├── Idle.Utility.Tests/      # 工具库单元测试
+│   ├── Idle.Core.Tests/         # 核心库单元测试
+│   ├── IdleCOP.Gameplay.Tests/  # 玩法单元测试
+│   ├── IdleCOP.AI.Tests/        # AI单元测试
+│   └── IdleCOP.Data.Tests/      # 数据单元测试
 └── .github/
-    └── ISSUE_TEMPLATE.md     # 提案/任务模板
+    └── ISSUE_TEMPLATE.md        # 提案/任务模板
 ```
 
 ## 快速开始
-
-> 项目处于设计阶段，开发环境搭建指南将在后续更新。
 
 ### 前置要求
 
@@ -56,7 +68,25 @@ IdleCOP/
 git clone https://github.com/rehee/IdleCOP.git
 cd IdleCOP
 
-# 后续开发中...
+# 初始化项目结构（首次运行）
+# Linux/macOS:
+chmod +x init-project.sh
+./init-project.sh
+
+# Windows (PowerShell):
+.\init-project.ps1
+
+# 恢复 NuGet 包
+dotnet restore
+
+# 编译解决方案
+dotnet build
+
+# 运行单元测试
+dotnet test
+
+# 运行控制台程序
+dotnet run --project src/IdleCOP.Console
 ```
 
 ## 文档导航
