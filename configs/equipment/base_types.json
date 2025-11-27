@@ -1,0 +1,5 @@
+{
+  "$schema": "装备底材配置",
+  "description": "定义装备底材类型",
+  "baseTypes": []
+}

@@ -1,0 +1,5 @@
+{
+  "$schema": "行为策略配置",
+  "description": "定义行为策略",
+  "strategies": []
+}
