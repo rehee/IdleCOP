@@ -1,0 +1,215 @@
+using Xunit;
+using Idle.Core;
+using Idle.Core.Combat;
+using Idle.Core.Context;
+using Idle.Core.DTOs;
+using IdleCOP.Gameplay.Actors;
+using IdleCOP.Gameplay.Maps;
+
+namespace IdleCOP.Gameplay.Tests.Maps;
+
+/// <summary>
+/// MapComponent 测试
+/// </summary>
+public class MapComponentTests
+{
+  [Fact]
+  public void MapComponent_Initialize_CreatesValidComponent()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    Assert.NotNull(map);
+    Assert.NotNull(map.MapProfile);
+    Assert.Equal(request, map.CombatRequest);
+    Assert.False(map.IsReplay);
+    Assert.Single(context.CreatorFaction);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_SetsMaxTick()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    // StarterVillage has 120 seconds, at 30 fps = 3600 ticks
+    Assert.Equal(120 * 30, context.MaxTick);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_SetsBattleRandom()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    Assert.NotNull(context.BattleRandom);
+    Assert.NotNull(context.ItemRandom);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_ReplayMode_NoItemRandom()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+    request.IsReplay = true;
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    Assert.NotNull(context.BattleRandom);
+    Assert.Null(context.ItemRandom);
+    Assert.True(map.IsReplay);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_PvE_GeneratesWaves()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    Assert.NotEmpty(map.Waves);
+    Assert.Equal(MapProfiles.StarterVillage.MaxWaves, map.Waves.Count);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_PvP_SpawnsEnemyPlayers()
+  {
+    // Arrange
+    var player1 = CharacterDTO.CreatePlayer("Player1", 10);
+    var player2 = CharacterDTO.CreatePlayer("Player2", 10);
+    var request = CombatRequest.CreatePvP(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.PvPArena,
+      1, 10,
+      new List<CharacterDTO> { player1 },
+      new List<CharacterDTO> { player2 });
+
+    using var context = new TickContext();
+
+    // Act
+    var map = MapComponent.Initialize(request, context);
+
+    // Assert
+    Assert.Single(context.CreatorFaction);
+    Assert.Single(context.EnemyFaction);
+    Assert.Empty(map.Waves);
+  }
+
+  [Fact]
+  public void MapComponent_Initialize_InvalidMapId_Throws()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      9999, // Invalid map ID
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+
+    // Act & Assert
+    Assert.Throws<ArgumentException>(() => MapComponent.Initialize(request, context));
+  }
+
+  [Fact]
+  public void MapComponent_GenerateReplayEntity_CreatesCorrectEntity()
+  {
+    // Arrange
+    var player = CharacterDTO.CreatePlayer("TestPlayer", 5);
+    var request = CombatRequest.CreateNew(
+      Guid.NewGuid(),
+      (int)EnumMapProfile.StarterVillage,
+      1, 5,
+      new List<CharacterDTO> { player });
+
+    using var context = new TickContext();
+    var map = MapComponent.Initialize(request, context);
+    context.Result = EnumBattleResult.Victory;
+    context.CurrentTick = 500;
+
+    // Act
+    var replay = map.GenerateReplayEntity(context);
+
+    // Assert
+    Assert.Equal(request.CreatorCharacterId, replay.CreatorCharacterId);
+    Assert.Equal(request.MapId, replay.MapId);
+    Assert.Equal(request.BattleSeed, replay.BattleSeed);
+    Assert.Equal(EnumBattleResult.Victory, replay.BattleResult);
+    Assert.Equal(500, replay.DurationTicks);
+  }
+
+  [Fact]
+  public void MapComponent_TempInventory_HasMaxSize()
+  {
+    // Assert
+    Assert.Equal(500, MapComponent.MaxTempInventorySize);
+  }
+
+  [Fact]
+  public void MapComponent_AddToTempInventory_AddsItem()
+  {
+    // Arrange
+    var map = new MapComponent();
+    var itemId = Guid.NewGuid();
+
+    // Act
+    map.AddToTempInventory(itemId);
+
+    // Assert
+    Assert.Single(map.TempInventory);
+    Assert.Contains(itemId, map.TempInventory);
+  }
+}
