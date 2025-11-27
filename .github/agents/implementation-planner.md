@@ -6,7 +6,7 @@
 
 name:implementation-planner
 description: Creates detailed implementation plans and technical specifications in markdown format
-tools: ["read", "search", "edit"]
+
 ---
 
 # My Agent
