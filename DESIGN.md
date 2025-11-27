@@ -28,7 +28,7 @@
 │  Combat | Skills | Equipment | Maps | Instructions | AI     │
 ├─────────────────────────────────────────────────────────────┤
 │                      核心层 (Core)                            │
-│   Component System | Event System | Behavior Strategy       │
+│   Component System | TickContext | Behavior Strategy        │
 ├─────────────────────────────────────────────────────────────┤
 │                      工具层 (Utility)                         │
 │       Common Utils | Extensions | Helpers                   │
@@ -55,7 +55,7 @@ src/
 ├── Idle.Core/              # 核心基础库（通用玩法框架）
 │   ├── Components/         # 组件系统基类
 │   ├── Profiles/           # Profile 单例逻辑
-│   ├── Events/             # 事件系统
+│   ├── Context/            # TickContext 战斗上下文
 │   ├── Behaviors/          # 可配置行为策略
 │   └── DI/                 # 依赖注入抽象
 │
@@ -97,14 +97,21 @@ src/
 
 #### 1.1 组件系统 (Component System)
 
-使用组件化设计。所有游戏实例化对象都是 `IdleComponent`，负责保存数据和触发事件。
+使用组件化设计。所有游戏实例化对象都是 `IdleComponent`，负责保存数据。
 组件的逻辑在 `IdleProfile` 中，`IdleProfile` 是单例模式。
 
 每个 `IdleComponent` 对应一个 `IdleProfile`，每个 `IdleProfile` 都有唯一的 Key (int)。
 
+**组件层级结构：**
+- 演员（Actor）是父组件
+- 技能（Skill）是子组件
+- 持续性效果（Effect）是子组件
+- 技能与持续性效果为兄弟组件
+- `TickContext` 依次传递给所有组件
+
 ```csharp
 /// <summary>
-/// 游戏组件基类 - 保存数据，触发事件
+/// 游戏组件基类 - 保存数据，支持父子层级
 /// </summary>
 public abstract class IdleComponent
 {
@@ -113,8 +120,34 @@ public abstract class IdleComponent
   public Dictionary<string, object> Data { get; set; }
   public List<BehaviorStrategy> Behaviors { get; set; }
   
-  public virtual void OnTick(GameTime gameTime) { }
-  public virtual void OnEvent(GameEvent gameEvent) { }
+  // 父子组件关系
+  public IdleComponent Parent { get; set; }
+  public List<IdleComponent> Children { get; set; }
+  
+  public virtual void OnTick(TickContext context)
+  {
+    // 先执行自身逻辑
+    var profile = ProfileManager.GetProfile(ProfileKey);
+    profile?.Execute(this, context);
+    
+    // 再依次执行子组件
+    foreach (var child in Children)
+    {
+      child.OnTick(context);
+    }
+  }
+  
+  public void AddChild(IdleComponent child)
+  {
+    child.Parent = this;
+    Children.Add(child);
+  }
+  
+  public void RemoveChild(IdleComponent child)
+  {
+    child.Parent = null;
+    Children.Remove(child);
+  }
 }
 
 /// <summary>
@@ -123,7 +156,7 @@ public abstract class IdleComponent
 public abstract class IdleProfile
 {
   public abstract int Key { get; }
-  public abstract void Execute(IdleComponent component, GameContext context);
+  public abstract void Execute(IdleComponent component, TickContext context);
 }
 
 // Profile Key 枚举示例
@@ -158,23 +191,161 @@ public enum EnumItem
 
 > **注意：** 如果一个 Profile 使用 `NotSpecified` 作为 Key，则需要额外设置一个不与现有 Enum 冲突的 Key。
 
-#### 1.2 事件系统 (Event System)
+#### 1.2 战斗上下文系统 (TickContext)
 
-基于发布-订阅模式的事件系统，用于模块间解耦通信。
+使用确定性的战斗系统，通过种子文件确保同一种子在同一版本下产生相同的战斗演出。
+
+**种子文件结构：**
 
 ```csharp
-public interface IEventBus
+/// <summary>
+/// 战斗种子文件 - 确保确定性战斗回放
+/// </summary>
+public class BattleSeed
 {
-  void Publish<T>(T gameEvent) where T : GameEvent;
-  void Subscribe<T>(Action<T> handler) where T : GameEvent;
-  void Unsubscribe<T>(Action<T> handler) where T : GameEvent;
+  public long RandomSeed { get; set; }        // 随机数种子
+  public string MapId { get; set; }           // 地图ID
+  public string Version { get; set; }         // 游戏版本（确保兼容性）
+  public List<ActorSnapshot> PlayerSnapshots { get; set; }  // 玩家加入战斗时的属性快照
 }
 
-public abstract class GameEvent
+/// <summary>
+/// 演员属性快照 - 玩家加入战斗时的状态
+/// </summary>
+public class ActorSnapshot
 {
-  public string EventId { get; set; }
-  public DateTime Timestamp { get; set; }
-  public IdleComponent Source { get; set; }
+  public string ActorId { get; set; }
+  public Dictionary<string, object> Stats { get; set; }
+  public List<EquipmentSnapshot> Equipment { get; set; }
+  public List<SkillSnapshot> Skills { get; set; }
+}
+```
+
+**战斗上下文：**
+
+```csharp
+/// <summary>
+/// Tick 上下文 - 战斗循环的核心参数
+/// </summary>
+public class TickContext
+{
+  public BattleSeed Seed { get; set; }
+  public Random Random { get; set; }          // 由种子初始化的随机数生成器
+  public int CurrentTick { get; set; }        // 当前帧数（从0开始）
+  public int MaxTick { get; set; }            // 最大帧数（根据地图最大时间计算）
+  public float TickRate { get; set; }         // 每秒帧数（默认30）
+  public float DeltaTime => 1f / TickRate;    // 每帧时间间隔
+  
+  public IdleComponent Map { get; set; }      // 地图组件
+  public List<IdleComponent> Projectiles { get; set; }  // 投射物列表
+  public List<IdleComponent> Players { get; set; }      // 玩家列表
+  public List<IdleComponent> Monsters { get; set; }     // 怪物列表（含NPC波次）
+  
+  public bool IsBattleOver { get; set; }      // 战斗是否结束
+  public EnumBattleResult Result { get; set; } // 战斗结果
+}
+
+public enum EnumBattleResult
+{
+  NotSpecified = 0,
+  Victory,        // 玩家胜利
+  Defeat,         // 玩家失败
+  Timeout,        // 超时
+  Draw            // 平局
+}
+```
+
+**战斗循环：**
+
+```csharp
+/// <summary>
+/// 战斗管理器 - 执行确定性战斗循环
+/// </summary>
+public class BattleManager
+{
+  public TickContext CreateBattle(BattleSeed seed)
+  {
+    var context = new TickContext
+    {
+      Seed = seed,
+      Random = new Random((int)seed.RandomSeed),
+      CurrentTick = 0,
+      TickRate = 30f,  // 30帧/秒
+    };
+    
+    // 根据地图ID和种子生成地图组件
+    var mapProfile = ProfileManager.GetMapProfile(seed.MapId);
+    context.Map = mapProfile.GenerateMap(context);
+    context.MaxTick = (int)(mapProfile.MaxPlayTime * context.TickRate);
+    
+    // 根据玩家快照生成玩家组件
+    foreach (var snapshot in seed.PlayerSnapshots)
+    {
+      var player = CreatePlayerFromSnapshot(snapshot, context);
+      context.Players.Add(player);
+    }
+    
+    return context;
+  }
+  
+  public void RunBattle(TickContext context)
+  {
+    while (context.CurrentTick < context.MaxTick && !context.IsBattleOver)
+    {
+      ExecuteTick(context);
+      context.CurrentTick++;
+    }
+    
+    // 检查战斗结果
+    if (!context.IsBattleOver)
+    {
+      context.Result = EnumBattleResult.Timeout;
+    }
+  }
+  
+  private void ExecuteTick(TickContext context)
+  {
+    // 按顺序执行：投射物 -> 玩家 -> 怪物
+    foreach (var projectile in context.Projectiles.Where(p => IsAlive(p)))
+    {
+      projectile.OnTick(context);
+    }
+    
+    foreach (var player in context.Players.Where(p => IsAlive(p)))
+    {
+      player.OnTick(context);
+    }
+    
+    foreach (var monster in context.Monsters.Where(m => IsAlive(m)))
+    {
+      monster.OnTick(context);
+    }
+    
+    // 检查战斗结束条件
+    CheckBattleEnd(context);
+  }
+  
+  private void CheckBattleEnd(TickContext context)
+  {
+    var allPlayersDead = context.Players.All(p => !IsAlive(p));
+    var allMonstersDead = context.Monsters.All(m => !IsAlive(m));
+    
+    if (allPlayersDead)
+    {
+      context.IsBattleOver = true;
+      context.Result = EnumBattleResult.Defeat;
+    }
+    else if (allMonstersDead)
+    {
+      context.IsBattleOver = true;
+      context.Result = EnumBattleResult.Victory;
+    }
+  }
+  
+  private bool IsAlive(IdleComponent component)
+  {
+    return component.Data.TryGetValue("Health", out var hp) && (float)hp > 0;
+  }
 }
 ```
 
@@ -192,8 +363,8 @@ public abstract class BehaviorStrategy
   public bool IsEnabled { get; set; }
   public BehaviorCondition Condition { get; set; }
   
-  public abstract bool CanExecute(IdleComponent component, GameContext context);
-  public abstract void Execute(IdleComponent component, GameContext context);
+  public abstract bool CanExecute(IdleComponent component, TickContext context);
+  public abstract void Execute(IdleComponent component, TickContext context);
 }
 
 /// <summary>
@@ -203,7 +374,7 @@ public class StrategyExecutor
 {
   private List<BehaviorStrategy> strategies;
   
-  public void Execute(IdleComponent component, GameContext context)
+  public void Execute(IdleComponent component, TickContext context)
   {
     var sortedStrategies = strategies
       .Where(s => s.IsEnabled && s.CanExecute(component, context))
@@ -309,6 +480,8 @@ public interface IDropTable
 
 #### 2.2 技能系统
 
+技能作为演员的子组件存在，在 `OnTick` 中通过 `TickContext` 执行。
+
 ```csharp
 public abstract class Skill
 {
@@ -317,7 +490,7 @@ public abstract class Skill
   public SkillParams Params { get; set; }
   public List<SupportSkill> Supports { get; set; }
   
-  public abstract void Execute(IdleComponent caster, SkillContext context);
+  public abstract void Execute(IdleComponent caster, TickContext context);
 }
 
 public enum EnumSkillType
@@ -489,8 +662,8 @@ public interface IInstructionExecutor
 public interface IStrategy
 {
   int Priority { get; }
-  bool CanExecute(StrategyContext context);
-  void Execute(StrategyContext context);
+  bool CanExecute(TickContext context, IdleComponent actor);
+  void Execute(TickContext context, IdleComponent actor);
 }
 
 public enum EnumStrategyStatus
@@ -505,13 +678,13 @@ public class StrategyList
 {
   public List<IStrategy> Strategies { get; set; }
   
-  public void Tick(StrategyContext context)
+  public void Tick(TickContext context, IdleComponent actor)
   {
     foreach (var strategy in Strategies.OrderByDescending(s => s.Priority))
     {
-      if (strategy.CanExecute(context))
+      if (strategy.CanExecute(context, actor))
       {
-        strategy.Execute(context);
+        strategy.Execute(context, actor);
         break;  // 执行最高优先级匹配策略后停止
       }
     }
@@ -558,19 +731,62 @@ public interface ISyncService
 
 ## 数据流
 
-### 游戏循环
+### 战斗循环（确定性）
 
 ```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│    Input     │───>│  Game Logic  │───>│   Render     │
-│  (手操/放置)  │    │  (Tick循环)   │    │  (UI更新)    │
-└──────────────┘    └──────────────┘    └──────────────┘
-       │                   │                    │
-       └───────────────────┴────────────────────┘
-                          │
-                    ┌─────┴─────┐
-                    │  Events   │
-                    └───────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    战斗种子 (BattleSeed)                      │
+│         随机种子 + 地图ID + 玩家快照 + 游戏版本               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  创建战斗上下文 (TickContext)                 │
+│    初始化随机数生成器 | 生成地图组件 | 生成玩家组件           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Tick 循环 (0 → MaxTick)                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  投射物     │─>│   玩家      │─>│   怪物      │         │
+│  │  OnTick()   │  │  OnTick()   │  │  OnTick()   │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│         │               │               │                   │
+│         └───────────────┼───────────────┘                   │
+│                         ▼                                   │
+│              ┌─────────────────────┐                        │
+│              │  检查战斗结束条件   │                        │
+│              └─────────────────────┘                        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      战斗结果                                │
+│          Victory | Defeat | Timeout | Draw                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+> **确定性保证：** 相同的种子文件 + 相同的游戏版本 = 相同的战斗演出
+
+### 组件层级执行流程
+
+```
+演员 (Actor Component)
+  │
+  ├─ OnTick(TickContext)
+  │     │
+  │     ├─ 执行自身 Profile 逻辑
+  │     │
+  │     └─ 依次执行子组件
+  │           │
+  │           ├─ 技能组件 (Skill Component)
+  │           │     └─ OnTick(TickContext)
+  │           │
+  │           └─ 效果组件 (Effect Component)
+  │                 └─ OnTick(TickContext)
+  │
+  └─ TickContext 传递完成
 ```
 
 ### 放置模式数据流
@@ -580,14 +796,22 @@ public interface ISyncService
   │
   ├─ 接收玩家指令配置
   │
-  ├─ 后台执行游戏Tick
+  ├─ 创建战斗种子 (BattleSeed)
   │     │
-  │     ├─ 执行指令队列
+  │     ├─ 生成随机数种子
+  │     ├─ 确定地图ID
+  │     └─ 保存玩家属性快照
+  │
+  ├─ 执行战斗循环 (TickContext)
+  │     │
+  │     ├─ 按 Tick 顺序执行
   │     ├─ 更新演员状态
   │     ├─ 处理战斗/掉落
-  │     └─ 记录游戏日志
+  │     └─ 记录战斗日志
   │
   └─ 同步结果到客户端
+       │
+       └─ 可选：发送种子文件用于战斗回放
 ```
 
 ---
