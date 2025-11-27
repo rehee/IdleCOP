@@ -34,44 +34,51 @@ IdleCOP/
 ├── CONTRIBUTING.md           # 贡献规范
 ├── IdleCOP.sln               # 解决方案文件
 ├── Directory.Build.props     # 共享项目属性
-├── setup.sh                  # Linux/macOS 设置脚本
-├── setup.ps1                 # Windows 设置脚本
+├── setup-projects.sh         # Linux/macOS 项目设置脚本
+├── setup-projects.ps1        # Windows 项目设置脚本
 ├── .editorconfig             # 代码风格配置
 ├── .gitignore                # Git 忽略规则
 │
 ├── Idle.Utility/             # 通用工具库（独立，无游戏依赖）
-│   └── Helpers/              # 帮助类（XXXHelper）
+│   ├── TickHelper.cs         # 时间/Tick 转换
+│   ├── RandomHelper.cs       # 随机数扩展
+│   ├── GuidHelper.cs         # Guid 操作
+│   └── MathHelper.cs         # 数学运算
 │
 ├── Idle.Core/                # 核心基础库（通用玩法框架）
-│   ├── Components/           # 组件系统基类
-│   ├── Profiles/             # Profile 单例逻辑
-│   ├── Context/              # TickContext 战斗上下文
-│   ├── Repository/           # IRepository/IContext 数据访问抽象
-│   └── DI/                   # 依赖注入抽象
+│   ├── IdleComponent.cs      # 组件系统基类
+│   ├── IdleProfile.cs        # Profile 单例逻辑
+│   ├── TickContext.cs        # 战斗上下文
+│   ├── IRepository.cs        # 数据访问抽象
+│   ├── IServiceContainer.cs  # 依赖注入抽象
+│   ├── IRandom.cs            # 随机数接口
+│   └── IWithName.cs          # 命名接口
 │
 ├── IdleCOP.Gameplay/         # COP 游戏玩法实现
-│   ├── Combat/               # 战斗系统
-│   ├── Skills/               # 技能系统
-│   ├── Equipment/            # 装备系统
-│   ├── Maps/                 # 地图系统
-│   └── Instructions/         # 指令系统
+│   ├── ActorComponent.cs     # 演员/角色组件
+│   ├── SkillComponent.cs     # 技能组件
+│   ├── EquipmentComponent.cs # 装备组件
+│   ├── MapComponent.cs       # 地图组件
+│   └── InstructionComponent.cs # 指令组件
 │
 ├── IdleCOP.AI/               # AI与行为
-│   └── Strategies/           # 可配置策略列表
+│   ├── IStrategy.cs          # 策略接口
+│   └── StrategyManager.cs    # 策略管理器
 │
 ├── IdleCOP.Data/             # 数据管理
-│   ├── Entities/             # 持久化实体
-│   ├── DTOs/                 # 数据传输对象
-│   └── Configs/              # 配置文件
+│   ├── Entities.cs           # 持久化实体
+│   ├── DTOs.cs               # 数据传输对象
+│   └── Enums.cs              # 枚举定义
 │
 ├── IdleCOP.Client.Web/       # Blazor Web 客户端
 │
-├── configs/                  # 游戏配置文件
-│   ├── equipment/            # 装备配置
-│   ├── skills/               # 技能配置
-│   ├── effects/              # 效果配置
-│   ├── strategies/           # 策略配置
-│   └── maps/                 # 地图配置
+├── IdleCOP.Client.Console/   # 控制台实验客户端 (运行 setup-projects.sh 后生成)
+│
+├── Idle.Utility.Tests/       # Idle.Utility 单元测试 (运行 setup-projects.sh 后生成)
+├── Idle.Core.Tests/          # Idle.Core 单元测试 (运行 setup-projects.sh 后生成)
+├── IdleCOP.Gameplay.Tests/   # IdleCOP.Gameplay 单元测试 (运行 setup-projects.sh 后生成)
+├── IdleCOP.AI.Tests/         # IdleCOP.AI 单元测试 (运行 setup-projects.sh 后生成)
+├── IdleCOP.Data.Tests/       # IdleCOP.Data 单元测试 (运行 setup-projects.sh 后生成)
 │
 ├── docs-gameplay.md          # 玩法细节分解
 ├── docs-data-models.md       # 数据模型示例
@@ -97,12 +104,12 @@ IdleCOP/
 git clone https://github.com/rehee/IdleCOP.git
 cd IdleCOP
 
-# Linux/macOS: 运行设置脚本
-chmod +x setup.sh
-./setup.sh
+# Linux/macOS: 运行设置脚本创建项目结构
+chmod +x setup-projects.sh
+./setup-projects.sh
 
-# Windows (PowerShell): 运行设置脚本
-./setup.ps1
+# Windows (PowerShell): 运行设置脚本创建项目结构
+./setup-projects.ps1
 
 # 恢复依赖
 dotnet restore
@@ -112,6 +119,9 @@ dotnet build
 
 # 运行测试
 dotnet test
+
+# 运行控制台实验项目
+dotnet run --project IdleCOP.Client.Console
 ```
 
 ## 文档导航
