@@ -3,6 +3,103 @@
 
 Write-Host "Setting up IdleCOP project structure..."
 
+# Create folder structure for Idle.Utility
+Write-Host "Organizing Idle.Utility folder structure..."
+New-Item -ItemType Directory -Force -Path "Idle.Utility/Helpers" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Utility/Randoms" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Utility/Repository" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Utility/Container" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Utility/Commons" | Out-Null
+
+# Move Idle.Utility files to proper folders
+if (Test-Path "Idle.Utility/MathHelper.cs") { Move-Item "Idle.Utility/MathHelper.cs" "Idle.Utility/Helpers/" -Force }
+if (Test-Path "Idle.Utility/TickHelper.cs") { Move-Item "Idle.Utility/TickHelper.cs" "Idle.Utility/Helpers/" -Force }
+if (Test-Path "Idle.Utility/RandomHelper.cs") { Move-Item "Idle.Utility/RandomHelper.cs" "Idle.Utility/Helpers/" -Force }
+if (Test-Path "Idle.Utility/GuidHelper.cs") { Move-Item "Idle.Utility/GuidHelper.cs" "Idle.Utility/Helpers/" -Force }
+
+# Create folder structure for Idle.Core
+Write-Host "Organizing Idle.Core folder structure..."
+New-Item -ItemType Directory -Force -Path "Idle.Core/Enums" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Core/Components" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Core/Profiles" | Out-Null
+New-Item -ItemType Directory -Force -Path "Idle.Core/Commons" | Out-Null
+
+# Move Idle.Core files to proper folders
+if (Test-Path "Idle.Core/EnumBattleResult.cs") { Move-Item "Idle.Core/EnumBattleResult.cs" "Idle.Core/Enums/" -Force }
+if (Test-Path "Idle.Core/IdleComponent.cs") { Move-Item "Idle.Core/IdleComponent.cs" "Idle.Core/Components/" -Force }
+if (Test-Path "Idle.Core/IdleProfile.cs") { Move-Item "Idle.Core/IdleProfile.cs" "Idle.Core/Profiles/" -Force }
+if (Test-Path "Idle.Core/TickContext.cs") { Move-Item "Idle.Core/TickContext.cs" "Idle.Core/Commons/" -Force }
+
+# Move interfaces from Idle.Core to Idle.Utility based on review feedback
+if (Test-Path "Idle.Core/IRandom.cs") { Move-Item "Idle.Core/IRandom.cs" "Idle.Utility/Randoms/" -Force }
+if (Test-Path "Idle.Core/IRepository.cs") { Move-Item "Idle.Core/IRepository.cs" "Idle.Utility/Repository/" -Force }
+if (Test-Path "Idle.Core/IServiceContainer.cs") { Move-Item "Idle.Core/IServiceContainer.cs" "Idle.Utility/Container/" -Force }
+if (Test-Path "Idle.Core/IWithName.cs") { Move-Item "Idle.Core/IWithName.cs" "Idle.Utility/Commons/" -Force }
+
+# Create folder structure for IdleCOP.Data
+Write-Host "Organizing IdleCOP.Data folder structure..."
+New-Item -ItemType Directory -Force -Path "IdleCOP.Data/Enums" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Data/Entities" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Data/DTOs" | Out-Null
+
+# Move IdleCOP.Data files to proper folders
+if (Test-Path "IdleCOP.Data/EnumQuality.cs") { Move-Item "IdleCOP.Data/EnumQuality.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumSkillType.cs") { Move-Item "IdleCOP.Data/EnumSkillType.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumAffixType.cs") { Move-Item "IdleCOP.Data/EnumAffixType.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumResourceType.cs") { Move-Item "IdleCOP.Data/EnumResourceType.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumDurationType.cs") { Move-Item "IdleCOP.Data/EnumDurationType.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumFaction.cs") { Move-Item "IdleCOP.Data/EnumFaction.cs" "IdleCOP.Data/Enums/" -Force }
+if (Test-Path "IdleCOP.Data/EnumActorType.cs") { Move-Item "IdleCOP.Data/EnumActorType.cs" "IdleCOP.Data/Enums/" -Force }
+
+if (Test-Path "IdleCOP.Data/BaseEntity.cs") { Move-Item "IdleCOP.Data/BaseEntity.cs" "IdleCOP.Data/Entities/" -Force }
+if (Test-Path "IdleCOP.Data/ActorEntity.cs") { Move-Item "IdleCOP.Data/ActorEntity.cs" "IdleCOP.Data/Entities/" -Force }
+if (Test-Path "IdleCOP.Data/SkillEntity.cs") { Move-Item "IdleCOP.Data/SkillEntity.cs" "IdleCOP.Data/Entities/" -Force }
+if (Test-Path "IdleCOP.Data/EquipmentEntity.cs") { Move-Item "IdleCOP.Data/EquipmentEntity.cs" "IdleCOP.Data/Entities/" -Force }
+if (Test-Path "IdleCOP.Data/AffixEntity.cs") { Move-Item "IdleCOP.Data/AffixEntity.cs" "IdleCOP.Data/Entities/" -Force }
+if (Test-Path "IdleCOP.Data/StrategyEntity.cs") { Move-Item "IdleCOP.Data/StrategyEntity.cs" "IdleCOP.Data/Entities/" -Force }
+
+if (Test-Path "IdleCOP.Data/BaseDTO.cs") { Move-Item "IdleCOP.Data/BaseDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+if (Test-Path "IdleCOP.Data/CharacterDTO.cs") { Move-Item "IdleCOP.Data/CharacterDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+if (Test-Path "IdleCOP.Data/SkillDTO.cs") { Move-Item "IdleCOP.Data/SkillDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+if (Test-Path "IdleCOP.Data/EquipmentDTO.cs") { Move-Item "IdleCOP.Data/EquipmentDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+if (Test-Path "IdleCOP.Data/AffixDTO.cs") { Move-Item "IdleCOP.Data/AffixDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+if (Test-Path "IdleCOP.Data/BattleSeedDTO.cs") { Move-Item "IdleCOP.Data/BattleSeedDTO.cs" "IdleCOP.Data/DTOs/" -Force }
+
+# Create folder structure for IdleCOP.Gameplay
+Write-Host "Organizing IdleCOP.Gameplay folder structure..."
+New-Item -ItemType Directory -Force -Path "IdleCOP.Gameplay/Combat" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Gameplay/Skills" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Gameplay/Equipment" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Gameplay/Maps" | Out-Null
+New-Item -ItemType Directory -Force -Path "IdleCOP.Gameplay/Instructions" | Out-Null
+
+# Move IdleCOP.Gameplay files to proper folders
+if (Test-Path "IdleCOP.Gameplay/ActorComponent.cs") { Move-Item "IdleCOP.Gameplay/ActorComponent.cs" "IdleCOP.Gameplay/Combat/" -Force }
+if (Test-Path "IdleCOP.Gameplay/SkillComponent.cs") { Move-Item "IdleCOP.Gameplay/SkillComponent.cs" "IdleCOP.Gameplay/Skills/" -Force }
+if (Test-Path "IdleCOP.Gameplay/EquipmentComponent.cs") { Move-Item "IdleCOP.Gameplay/EquipmentComponent.cs" "IdleCOP.Gameplay/Equipment/" -Force }
+if (Test-Path "IdleCOP.Gameplay/AffixComponent.cs") { Move-Item "IdleCOP.Gameplay/AffixComponent.cs" "IdleCOP.Gameplay/Equipment/" -Force }
+if (Test-Path "IdleCOP.Gameplay/MapComponent.cs") { Move-Item "IdleCOP.Gameplay/MapComponent.cs" "IdleCOP.Gameplay/Maps/" -Force }
+if (Test-Path "IdleCOP.Gameplay/ZoneComponent.cs") { Move-Item "IdleCOP.Gameplay/ZoneComponent.cs" "IdleCOP.Gameplay/Maps/" -Force }
+if (Test-Path "IdleCOP.Gameplay/InstructionComponent.cs") { Move-Item "IdleCOP.Gameplay/InstructionComponent.cs" "IdleCOP.Gameplay/Instructions/" -Force }
+if (Test-Path "IdleCOP.Gameplay/InstructionSetComponent.cs") { Move-Item "IdleCOP.Gameplay/InstructionSetComponent.cs" "IdleCOP.Gameplay/Instructions/" -Force }
+
+# Create folder structure for IdleCOP.AI
+Write-Host "Organizing IdleCOP.AI folder structure..."
+New-Item -ItemType Directory -Force -Path "IdleCOP.AI/Strategies" | Out-Null
+
+# Move IdleCOP.AI files to proper folders
+if (Test-Path "IdleCOP.AI/IStrategy.cs") { Move-Item "IdleCOP.AI/IStrategy.cs" "IdleCOP.AI/Strategies/" -Force }
+if (Test-Path "IdleCOP.AI/StrategyManager.cs") { Move-Item "IdleCOP.AI/StrategyManager.cs" "IdleCOP.AI/Strategies/" -Force }
+
+# Remove old placeholder and obsolete files
+if (Test-Path "Idle.Utility/Placeholder.cs") { Remove-Item "Idle.Utility/Placeholder.cs" -Force }
+if (Test-Path "IdleCOP.Data/Entities.cs") { Remove-Item "IdleCOP.Data/Entities.cs" -Force }
+if (Test-Path "IdleCOP.Data/DTOs.cs") { Remove-Item "IdleCOP.Data/DTOs.cs" -Force }
+if (Test-Path "IdleCOP.Data/Enums.cs") { Remove-Item "IdleCOP.Data/Enums.cs" -Force }
+
+Write-Host "Folder structure reorganization complete!"
+Write-Host ""
+
 # Create IdleCOP.Client.Console project
 New-Item -ItemType Directory -Force -Path "IdleCOP.Client.Console" | Out-Null
 

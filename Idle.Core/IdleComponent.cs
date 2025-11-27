@@ -1,5 +1,5 @@
 using Idle.Core.Context;
-using Idle.Core.Interfaces;
+using Idle.Utility.Commons;
 
 namespace Idle.Core.Components;
 

@@ -7,6 +7,103 @@ set -e
 
 echo "Setting up IdleCOP project structure..."
 
+# Create folder structure for Idle.Utility
+echo "Organizing Idle.Utility folder structure..."
+mkdir -p Idle.Utility/Helpers
+mkdir -p Idle.Utility/Randoms
+mkdir -p Idle.Utility/Repository
+mkdir -p Idle.Utility/Container
+mkdir -p Idle.Utility/Commons
+
+# Move Idle.Utility files to proper folders
+[ -f Idle.Utility/MathHelper.cs ] && mv Idle.Utility/MathHelper.cs Idle.Utility/Helpers/
+[ -f Idle.Utility/TickHelper.cs ] && mv Idle.Utility/TickHelper.cs Idle.Utility/Helpers/
+[ -f Idle.Utility/RandomHelper.cs ] && mv Idle.Utility/RandomHelper.cs Idle.Utility/Helpers/
+[ -f Idle.Utility/GuidHelper.cs ] && mv Idle.Utility/GuidHelper.cs Idle.Utility/Helpers/
+
+# Create folder structure for Idle.Core
+echo "Organizing Idle.Core folder structure..."
+mkdir -p Idle.Core/Enums
+mkdir -p Idle.Core/Components
+mkdir -p Idle.Core/Profiles
+mkdir -p Idle.Core/Commons
+
+# Move Idle.Core files to proper folders
+[ -f Idle.Core/EnumBattleResult.cs ] && mv Idle.Core/EnumBattleResult.cs Idle.Core/Enums/
+[ -f Idle.Core/IdleComponent.cs ] && mv Idle.Core/IdleComponent.cs Idle.Core/Components/
+[ -f Idle.Core/IdleProfile.cs ] && mv Idle.Core/IdleProfile.cs Idle.Core/Profiles/
+[ -f Idle.Core/TickContext.cs ] && mv Idle.Core/TickContext.cs Idle.Core/Commons/
+
+# Move interfaces from Idle.Core to Idle.Utility based on review feedback
+[ -f Idle.Core/IRandom.cs ] && mv Idle.Core/IRandom.cs Idle.Utility/Randoms/
+[ -f Idle.Core/IRepository.cs ] && mv Idle.Core/IRepository.cs Idle.Utility/Repository/
+[ -f Idle.Core/IServiceContainer.cs ] && mv Idle.Core/IServiceContainer.cs Idle.Utility/Container/
+[ -f Idle.Core/IWithName.cs ] && mv Idle.Core/IWithName.cs Idle.Utility/Commons/
+
+# Create folder structure for IdleCOP.Data
+echo "Organizing IdleCOP.Data folder structure..."
+mkdir -p IdleCOP.Data/Enums
+mkdir -p IdleCOP.Data/Entities
+mkdir -p IdleCOP.Data/DTOs
+
+# Move IdleCOP.Data files to proper folders
+[ -f IdleCOP.Data/EnumQuality.cs ] && mv IdleCOP.Data/EnumQuality.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumSkillType.cs ] && mv IdleCOP.Data/EnumSkillType.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumAffixType.cs ] && mv IdleCOP.Data/EnumAffixType.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumResourceType.cs ] && mv IdleCOP.Data/EnumResourceType.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumDurationType.cs ] && mv IdleCOP.Data/EnumDurationType.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumFaction.cs ] && mv IdleCOP.Data/EnumFaction.cs IdleCOP.Data/Enums/
+[ -f IdleCOP.Data/EnumActorType.cs ] && mv IdleCOP.Data/EnumActorType.cs IdleCOP.Data/Enums/
+
+[ -f IdleCOP.Data/BaseEntity.cs ] && mv IdleCOP.Data/BaseEntity.cs IdleCOP.Data/Entities/
+[ -f IdleCOP.Data/ActorEntity.cs ] && mv IdleCOP.Data/ActorEntity.cs IdleCOP.Data/Entities/
+[ -f IdleCOP.Data/SkillEntity.cs ] && mv IdleCOP.Data/SkillEntity.cs IdleCOP.Data/Entities/
+[ -f IdleCOP.Data/EquipmentEntity.cs ] && mv IdleCOP.Data/EquipmentEntity.cs IdleCOP.Data/Entities/
+[ -f IdleCOP.Data/AffixEntity.cs ] && mv IdleCOP.Data/AffixEntity.cs IdleCOP.Data/Entities/
+[ -f IdleCOP.Data/StrategyEntity.cs ] && mv IdleCOP.Data/StrategyEntity.cs IdleCOP.Data/Entities/
+
+[ -f IdleCOP.Data/BaseDTO.cs ] && mv IdleCOP.Data/BaseDTO.cs IdleCOP.Data/DTOs/
+[ -f IdleCOP.Data/CharacterDTO.cs ] && mv IdleCOP.Data/CharacterDTO.cs IdleCOP.Data/DTOs/
+[ -f IdleCOP.Data/SkillDTO.cs ] && mv IdleCOP.Data/SkillDTO.cs IdleCOP.Data/DTOs/
+[ -f IdleCOP.Data/EquipmentDTO.cs ] && mv IdleCOP.Data/EquipmentDTO.cs IdleCOP.Data/DTOs/
+[ -f IdleCOP.Data/AffixDTO.cs ] && mv IdleCOP.Data/AffixDTO.cs IdleCOP.Data/DTOs/
+[ -f IdleCOP.Data/BattleSeedDTO.cs ] && mv IdleCOP.Data/BattleSeedDTO.cs IdleCOP.Data/DTOs/
+
+# Create folder structure for IdleCOP.Gameplay
+echo "Organizing IdleCOP.Gameplay folder structure..."
+mkdir -p IdleCOP.Gameplay/Combat
+mkdir -p IdleCOP.Gameplay/Skills
+mkdir -p IdleCOP.Gameplay/Equipment
+mkdir -p IdleCOP.Gameplay/Maps
+mkdir -p IdleCOP.Gameplay/Instructions
+
+# Move IdleCOP.Gameplay files to proper folders
+[ -f IdleCOP.Gameplay/ActorComponent.cs ] && mv IdleCOP.Gameplay/ActorComponent.cs IdleCOP.Gameplay/Combat/
+[ -f IdleCOP.Gameplay/SkillComponent.cs ] && mv IdleCOP.Gameplay/SkillComponent.cs IdleCOP.Gameplay/Skills/
+[ -f IdleCOP.Gameplay/EquipmentComponent.cs ] && mv IdleCOP.Gameplay/EquipmentComponent.cs IdleCOP.Gameplay/Equipment/
+[ -f IdleCOP.Gameplay/AffixComponent.cs ] && mv IdleCOP.Gameplay/AffixComponent.cs IdleCOP.Gameplay/Equipment/
+[ -f IdleCOP.Gameplay/MapComponent.cs ] && mv IdleCOP.Gameplay/MapComponent.cs IdleCOP.Gameplay/Maps/
+[ -f IdleCOP.Gameplay/ZoneComponent.cs ] && mv IdleCOP.Gameplay/ZoneComponent.cs IdleCOP.Gameplay/Maps/
+[ -f IdleCOP.Gameplay/InstructionComponent.cs ] && mv IdleCOP.Gameplay/InstructionComponent.cs IdleCOP.Gameplay/Instructions/
+[ -f IdleCOP.Gameplay/InstructionSetComponent.cs ] && mv IdleCOP.Gameplay/InstructionSetComponent.cs IdleCOP.Gameplay/Instructions/
+
+# Create folder structure for IdleCOP.AI
+echo "Organizing IdleCOP.AI folder structure..."
+mkdir -p IdleCOP.AI/Strategies
+
+# Move IdleCOP.AI files to proper folders
+[ -f IdleCOP.AI/IStrategy.cs ] && mv IdleCOP.AI/IStrategy.cs IdleCOP.AI/Strategies/
+[ -f IdleCOP.AI/StrategyManager.cs ] && mv IdleCOP.AI/StrategyManager.cs IdleCOP.AI/Strategies/
+
+# Remove old placeholder and obsolete files
+[ -f Idle.Utility/Placeholder.cs ] && rm Idle.Utility/Placeholder.cs
+[ -f IdleCOP.Data/Entities.cs ] && rm IdleCOP.Data/Entities.cs
+[ -f IdleCOP.Data/DTOs.cs ] && rm IdleCOP.Data/DTOs.cs
+[ -f IdleCOP.Data/Enums.cs ] && rm IdleCOP.Data/Enums.cs
+
+echo "Folder structure reorganization complete!"
+echo ""
+
 # Create IdleCOP.Client.Console project
 mkdir -p IdleCOP.Client.Console
 cat > IdleCOP.Client.Console/IdleCOP.Client.Console.csproj << 'EOF'

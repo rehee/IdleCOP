@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Idle.Core.Repository;
+namespace Idle.Utility.Repository;
 
 /// <summary>
 /// Generic repository interface for data access.

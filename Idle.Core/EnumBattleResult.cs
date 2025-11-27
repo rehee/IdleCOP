@@ -1,4 +1,4 @@
-namespace Idle.Core.Context;
+namespace Idle.Core.Enums;
 
 /// <summary>
 /// Battle result enumeration.

@@ -1,4 +1,4 @@
-namespace Idle.Core.Interfaces;
+namespace Idle.Utility.Randoms;
 
 /// <summary>
 /// Interface for random number generation.

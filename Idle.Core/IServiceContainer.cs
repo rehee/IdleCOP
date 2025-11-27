@@ -1,4 +1,4 @@
-namespace Idle.Core.DI;
+namespace Idle.Utility.Container;
 
 /// <summary>
 /// Interface for service providers.

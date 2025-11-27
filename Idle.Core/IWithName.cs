@@ -1,4 +1,4 @@
-namespace Idle.Core.Interfaces;
+namespace Idle.Utility.Commons;
 
 /// <summary>
 /// Interface for objects that have a name and description.
